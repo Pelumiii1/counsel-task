@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createFileRoute, createRootRoute, createRouter, lazyRouteComponent } from "@tanstack/react-router";
 import { jsx, jsxs } from "react/jsx-runtime";
 //#region src/styles.css?url
-var styles_default = "/assets/styles-DwXZwa9U.css";
+var styles_default = "/assets/styles-D26jNrbO.css";
 //#endregion
 //#region src/routes/__root.tsx
 var Route$1 = createRootRoute({
