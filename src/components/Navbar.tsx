@@ -18,7 +18,7 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-6 md:px-8">
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center md:w-1/4">
             <a href="/" className="flex items-center select-none">
               <img
                 src={logo}
@@ -29,7 +29,7 @@ export function Navbar() {
           </div>
 
           {/* Nav Links (Desktop) */}
-          <div className="hidden md:flex items-center space-x-8 lg:space-x-10">
+          <div className="hidden md:flex justify-center items-center md:flex-1 space-x-8 lg:space-x-10">
             {navLinks.map((link) => (
               <a
                 key={link.label}
@@ -49,39 +49,41 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Menu Button (Desktop & Mobile) */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex md:hidden items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer"
-            aria-label="Toggle Menu"
-          >
-            <svg
-              width="18"
-              height="12"
-              viewBox="0 0 18 12"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              className="transition-transform duration-200"
+          {/* Menu Button (Mobile) & Desktop Spacer */}
+          <div className="flex items-center justify-end md:w-1/4">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="flex md:hidden items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer"
+              aria-label="Toggle Menu"
             >
-              {isOpen ? (
-                <>
-                  <path d="M2 2l14 10" />
-                  <path d="M2 12L16 2" />
-                </>
-              ) : (
-                <>
-                  <path d="M1 1h12" />
-                  <path d="M1 6h16" />
-                  <path d="M1 11h8" />
-                </>
-              )}
-            </svg>
-            <span className="text-xs font-bold tracking-wider uppercase select-none font-secondary">
-              {isOpen ? 'Close' : 'Menu'}
-            </span>
-          </button>
+              <svg
+                width="18"
+                height="12"
+                viewBox="0 0 18 12"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="transition-transform duration-200"
+              >
+                {isOpen ? (
+                  <>
+                    <path d="M2 2l14 10" />
+                    <path d="M2 12L16 2" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M1 1h12" />
+                    <path d="M1 6h16" />
+                    <path d="M1 11h8" />
+                  </>
+                )}
+              </svg>
+              <span className="text-xs font-bold tracking-wider uppercase select-none font-secondary">
+                {isOpen ? 'Close' : 'Menu'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
