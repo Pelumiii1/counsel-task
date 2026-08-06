@@ -52,7 +52,7 @@ export function Navbar() {
           {/* Menu Button (Desktop & Mobile) */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer"
+            className="flex md:hidden items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer"
             aria-label="Toggle Menu"
           >
             <svg
