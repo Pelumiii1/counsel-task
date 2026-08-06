@@ -1,6 +1,6 @@
 import { c as HeadContent, d as lazyRouteComponent, f as createFileRoute, j as require_jsx_runtime, m as Link, p as createRootRoute, s as Scripts, u as createRouter } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as ArrowLeft, t as House } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CN-062lt.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-BuEScCzg.js
 var import_jsx_runtime = require_jsx_runtime();
 function NotFound() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -62,7 +62,7 @@ function NotFound() {
 		})]
 	});
 }
-var styles_default = "/assets/styles-DUTQRFGh.css";
+var styles_default = "/assets/styles-COblAlbI.css";
 var Route$1 = createRootRoute({
 	head: () => ({
 		meta: [
@@ -90,7 +90,7 @@ function RootDocument({ children }) {
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("head", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HeadContent, {}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("body", { children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Scripts, {})] })]
 	});
 }
-var $$splitComponentImporter = () => import("./(landingpage)-CB2aD-U3.mjs");
+var $$splitComponentImporter = () => import("./(landingpage)-D5zZu453.mjs");
 var rootRouteChildren = { landingpageIndexRoute: createFileRoute("/(landingpage)/")({ component: lazyRouteComponent($$splitComponentImporter, "component") }).update({
 	id: "/(landingpage)/",
 	path: "/",

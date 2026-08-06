@@ -1,6 +1,6 @@
 import { r as __toESM } from "../_runtime.mjs";
 import { M as require_react, j as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/(landingpage)-CB2aD-U3.js
+//#region node_modules/.nitro/vite/services/ssr/assets/(landingpage)-D5zZu453.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var logo_default = "data:image/png;base64,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";
@@ -37,7 +37,7 @@ function Navbar() {
 				className: "flex h-20 items-center justify-between",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "flex items-center",
+						className: "flex items-center md:w-1/4",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
 							href: "/",
 							className: "flex items-center select-none",
@@ -49,7 +49,7 @@ function Navbar() {
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "hidden md:flex items-center space-x-8 lg:space-x-10",
+						className: "hidden md:flex justify-center items-center md:flex-1 space-x-8 lg:space-x-10",
 						children: navLinks.map((link) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
 							href: link.href,
 							onClick: () => setActiveHash(link.href),
@@ -57,28 +57,31 @@ function Navbar() {
 							children: [link.label, activeHash === link.href && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "absolute bottom-0 left-0 h-[2px] w-full bg-[#CF6A52] rounded-full" })]
 						}, link.label))
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						onClick: () => setIsOpen(!isOpen),
-						className: "flex md:hidden items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer",
-						"aria-label": "Toggle Menu",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
-							width: "18",
-							height: "12",
-							viewBox: "0 0 18 12",
-							fill: "none",
-							stroke: "currentColor",
-							strokeWidth: "2",
-							strokeLinecap: "round",
-							className: "transition-transform duration-200",
-							children: isOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 2l14 10" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 12L16 2" })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 1h12" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 6h16" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 11h8" })
-							] })
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "text-xs font-bold tracking-wider uppercase select-none font-secondary",
-							children: isOpen ? "Close" : "Menu"
-						})]
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "flex items-center justify-end md:w-1/4",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							onClick: () => setIsOpen(!isOpen),
+							className: "flex md:hidden items-center space-x-2.5 text-[#041626] hover:text-[#CF6A52] transition-colors duration-200 focus:outline-none cursor-pointer",
+							"aria-label": "Toggle Menu",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+								width: "18",
+								height: "12",
+								viewBox: "0 0 18 12",
+								fill: "none",
+								stroke: "currentColor",
+								strokeWidth: "2",
+								strokeLinecap: "round",
+								className: "transition-transform duration-200",
+								children: isOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 2l14 10" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M2 12L16 2" })] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 1h12" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 6h16" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M1 11h8" })
+								] })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-xs font-bold tracking-wider uppercase select-none font-secondary",
+								children: isOpen ? "Close" : "Menu"
+							})]
+						})
 					})
 				]
 			})
