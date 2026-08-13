@@ -9,38 +9,115 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as engagingLaywersDashboardRouteImport } from './routes/(engaging-laywers)/dashboard'
 import { Route as landingpageIndexRouteImport } from './routes/(landingpage)/index'
+import { Route as engagingLaywersDashboardIndexRouteImport } from './routes/(engaging-laywers)/dashboard/index'
+import { Route as engagingLaywersDashboardPostJobRouteImport } from './routes/(engaging-laywers)/dashboard/post-job'
+import { Route as engagingLaywersAuthLoginIndexRouteImport } from './routes/(engaging-laywers)/auth/login/index'
+import { Route as engagingLaywersAuthRegisterIndexRouteImport } from './routes/(engaging-laywers)/auth/register/index'
 
+const engagingLaywersDashboardRoute =
+  engagingLaywersDashboardRouteImport.update({
+    id: '/(engaging-laywers)/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const landingpageIndexRoute = landingpageIndexRouteImport.update({
   id: '/(landingpage)/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const engagingLaywersDashboardIndexRoute =
+  engagingLaywersDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => engagingLaywersDashboardRoute,
+  } as any)
+const engagingLaywersDashboardPostJobRoute =
+  engagingLaywersDashboardPostJobRouteImport.update({
+    id: '/post-job',
+    path: '/post-job',
+    getParentRoute: () => engagingLaywersDashboardRoute,
+  } as any)
+const engagingLaywersAuthLoginIndexRoute =
+  engagingLaywersAuthLoginIndexRouteImport.update({
+    id: '/(engaging-laywers)/auth/login/',
+    path: '/auth/login/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const engagingLaywersAuthRegisterIndexRoute =
+  engagingLaywersAuthRegisterIndexRouteImport.update({
+    id: '/(engaging-laywers)/auth/register/',
+    path: '/auth/register/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
+  '/dashboard': typeof engagingLaywersDashboardRouteWithChildren
   '/': typeof landingpageIndexRoute
+  '/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
+  '/dashboard/': typeof engagingLaywersDashboardIndexRoute
+  '/auth/login/': typeof engagingLaywersAuthLoginIndexRoute
+  '/auth/register/': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof landingpageIndexRoute
+  '/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
+  '/dashboard': typeof engagingLaywersDashboardIndexRoute
+  '/auth/login': typeof engagingLaywersAuthLoginIndexRoute
+  '/auth/register': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/(engaging-laywers)/dashboard': typeof engagingLaywersDashboardRouteWithChildren
   '/(landingpage)/': typeof landingpageIndexRoute
+  '/(engaging-laywers)/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
+  '/(engaging-laywers)/dashboard/': typeof engagingLaywersDashboardIndexRoute
+  '/(engaging-laywers)/auth/login/': typeof engagingLaywersAuthLoginIndexRoute
+  '/(engaging-laywers)/auth/register/': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/dashboard'
+    | '/'
+    | '/dashboard/post-job'
+    | '/dashboard/'
+    | '/auth/login/'
+    | '/auth/register/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/(landingpage)/'
+  to:
+    | '/'
+    | '/dashboard/post-job'
+    | '/dashboard'
+    | '/auth/login'
+    | '/auth/register'
+  id:
+    | '__root__'
+    | '/(engaging-laywers)/dashboard'
+    | '/(landingpage)/'
+    | '/(engaging-laywers)/dashboard/post-job'
+    | '/(engaging-laywers)/dashboard/'
+    | '/(engaging-laywers)/auth/login/'
+    | '/(engaging-laywers)/auth/register/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  engagingLaywersDashboardRoute: typeof engagingLaywersDashboardRouteWithChildren
   landingpageIndexRoute: typeof landingpageIndexRoute
+  engagingLaywersAuthLoginIndexRoute: typeof engagingLaywersAuthLoginIndexRoute
+  engagingLaywersAuthRegisterIndexRoute: typeof engagingLaywersAuthRegisterIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(engaging-laywers)/dashboard': {
+      id: '/(engaging-laywers)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof engagingLaywersDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(landingpage)/': {
       id: '/(landingpage)/'
       path: '/'
@@ -48,11 +125,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof landingpageIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(engaging-laywers)/dashboard/': {
+      id: '/(engaging-laywers)/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof engagingLaywersDashboardIndexRouteImport
+      parentRoute: typeof engagingLaywersDashboardRoute
+    }
+    '/(engaging-laywers)/dashboard/post-job': {
+      id: '/(engaging-laywers)/dashboard/post-job'
+      path: '/post-job'
+      fullPath: '/dashboard/post-job'
+      preLoaderRoute: typeof engagingLaywersDashboardPostJobRouteImport
+      parentRoute: typeof engagingLaywersDashboardRoute
+    }
+    '/(engaging-laywers)/auth/login/': {
+      id: '/(engaging-laywers)/auth/login/'
+      path: '/auth/login'
+      fullPath: '/auth/login/'
+      preLoaderRoute: typeof engagingLaywersAuthLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(engaging-laywers)/auth/register/': {
+      id: '/(engaging-laywers)/auth/register/'
+      path: '/auth/register'
+      fullPath: '/auth/register/'
+      preLoaderRoute: typeof engagingLaywersAuthRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface engagingLaywersDashboardRouteChildren {
+  engagingLaywersDashboardPostJobRoute: typeof engagingLaywersDashboardPostJobRoute
+  engagingLaywersDashboardIndexRoute: typeof engagingLaywersDashboardIndexRoute
+}
+
+const engagingLaywersDashboardRouteChildren: engagingLaywersDashboardRouteChildren =
+  {
+    engagingLaywersDashboardPostJobRoute: engagingLaywersDashboardPostJobRoute,
+    engagingLaywersDashboardIndexRoute: engagingLaywersDashboardIndexRoute,
+  }
+
+const engagingLaywersDashboardRouteWithChildren =
+  engagingLaywersDashboardRoute._addFileChildren(
+    engagingLaywersDashboardRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
+  engagingLaywersDashboardRoute: engagingLaywersDashboardRouteWithChildren,
   landingpageIndexRoute: landingpageIndexRoute,
+  engagingLaywersAuthLoginIndexRoute: engagingLaywersAuthLoginIndexRoute,
+  engagingLaywersAuthRegisterIndexRoute: engagingLaywersAuthRegisterIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

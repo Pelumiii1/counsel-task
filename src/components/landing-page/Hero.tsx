@@ -1,4 +1,5 @@
-import allTaskImg from '../assets/landingpage/all-task.png'
+import { Link } from '@tanstack/react-router'
+import allTaskImg from '../../assets/landingpage/all-task.png'
 
 export function Hero() {
   return (
@@ -41,9 +42,12 @@ export function Hero() {
         </p>
 
         {/* CTA Button */}
-        <button className="px-8 py-4 bg-[#0e6e66] hover:bg-[#0b544e] text-white font-normal text-sm tracking-wide rounded-lg transition-all duration-200 shadow-md shadow-[#0e6e66]/10 hover:shadow-lg hover:shadow-[#0e6e66]/20 cursor-pointer mb-16 font-secondary">
+        <Link
+          to="/auth/register"
+          className="inline-flex items-center justify-center px-8 py-4 bg-[#0e6e66] hover:bg-[#0b544e] text-white font-normal text-sm tracking-wide rounded-lg transition-all duration-200 shadow-md shadow-[#0e6e66]/10 hover:shadow-lg hover:shadow-[#0e6e66]/20 cursor-pointer mb-16 font-secondary"
+        >
           Click to get started
-        </button>
+        </Link>
 
         {/* Mock Dashboard Image */}
         <div className="w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl shadow-[#041626]/12 border border-gray-200/50 hover:shadow-3xl transition-all duration-300">

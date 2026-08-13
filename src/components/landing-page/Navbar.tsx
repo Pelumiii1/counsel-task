@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import logo from '../assets/logo.png'
+import logo from '../../assets/logo.png'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)

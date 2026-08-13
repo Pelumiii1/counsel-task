@@ -1,6 +1,9 @@
-import { c as HeadContent, d as lazyRouteComponent, f as createFileRoute, j as require_jsx_runtime, m as Link, p as createRootRoute, s as Scripts, u as createRouter } from "../_libs/@tanstack/react-router+[...].mjs";
-import { n as ArrowLeft, t as House } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-BuEScCzg.js
+import { n as __exportAll } from "../_runtime.mjs";
+import { F as require_react, c as HeadContent, d as createRouter, g as Link, h as createRootRoute, m as createFileRoute, p as lazyRouteComponent, s as Scripts, v as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
+import { b as ArrowLeft, d as House } from "../_libs/lucide-react.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/router-D09CTr2C.js
+var router_D09CTr2C_exports = /* @__PURE__ */ __exportAll({ getRouter: () => getRouter });
+require_react();
 var import_jsx_runtime = require_jsx_runtime();
 function NotFound() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -62,8 +65,8 @@ function NotFound() {
 		})]
 	});
 }
-var styles_default = "/assets/styles-COblAlbI.css";
-var Route$1 = createRootRoute({
+var styles_default = "/assets/styles-Cq-ctijV.css";
+var Route$6 = createRootRoute({
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -90,13 +93,59 @@ function RootDocument({ children }) {
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("head", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HeadContent, {}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("body", { children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Scripts, {})] })]
 	});
 }
-var $$splitComponentImporter = () => import("./(landingpage)-D5zZu453.mjs");
-var rootRouteChildren = { landingpageIndexRoute: createFileRoute("/(landingpage)/")({ component: lazyRouteComponent($$splitComponentImporter, "component") }).update({
+var $$splitComponentImporter$5 = () => import("./dashboard-DdM0vIPh.mjs");
+var Route$5 = createFileRoute("/(engaging-laywers)/dashboard")({ component: lazyRouteComponent($$splitComponentImporter$5, "component") });
+var $$splitComponentImporter$4 = () => import("./(landingpage)-DPuxOElw.mjs");
+var Route$4 = createFileRoute("/(landingpage)/")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
+var $$splitComponentImporter$3 = () => import("./dashboard-qICTUJfA.mjs");
+var Route$3 = createFileRoute("/(engaging-laywers)/dashboard/")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
+var $$splitComponentImporter$2 = () => import("./post-job--uIgDvjz.mjs");
+var Route$2 = createFileRoute("/(engaging-laywers)/dashboard/post-job")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
+var $$splitComponentImporter$1 = () => import("./login-BPbNux8e.mjs");
+var Route$1 = createFileRoute("/(engaging-laywers)/auth/login/")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
+var $$splitComponentImporter = () => import("./register-Spkko6M7.mjs");
+var Route = createFileRoute("/(engaging-laywers)/auth/register/")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
+var engagingLaywersDashboardRoute = Route$5.update({
+	id: "/(engaging-laywers)/dashboard",
+	path: "/dashboard",
+	getParentRoute: () => Route$6
+});
+var landingpageIndexRoute = Route$4.update({
 	id: "/(landingpage)/",
 	path: "/",
-	getParentRoute: () => Route$1
-}) };
-var routeTree = Route$1._addFileChildren(rootRouteChildren)._addFileTypes();
+	getParentRoute: () => Route$6
+});
+var engagingLaywersDashboardIndexRoute = Route$3.update({
+	id: "/",
+	path: "/",
+	getParentRoute: () => engagingLaywersDashboardRoute
+});
+var engagingLaywersDashboardPostJobRoute = Route$2.update({
+	id: "/post-job",
+	path: "/post-job",
+	getParentRoute: () => engagingLaywersDashboardRoute
+});
+var engagingLaywersAuthLoginIndexRoute = Route$1.update({
+	id: "/(engaging-laywers)/auth/login/",
+	path: "/auth/login/",
+	getParentRoute: () => Route$6
+});
+var engagingLaywersAuthRegisterIndexRoute = Route.update({
+	id: "/(engaging-laywers)/auth/register/",
+	path: "/auth/register/",
+	getParentRoute: () => Route$6
+});
+var engagingLaywersDashboardRouteChildren = {
+	engagingLaywersDashboardPostJobRoute,
+	engagingLaywersDashboardIndexRoute
+};
+var rootRouteChildren = {
+	engagingLaywersDashboardRoute: engagingLaywersDashboardRoute._addFileChildren(engagingLaywersDashboardRouteChildren),
+	landingpageIndexRoute,
+	engagingLaywersAuthLoginIndexRoute,
+	engagingLaywersAuthRegisterIndexRoute
+};
+var routeTree = Route$6._addFileChildren(rootRouteChildren)._addFileTypes();
 function getRouter() {
 	return createRouter({
 		routeTree,
@@ -106,4 +155,4 @@ function getRouter() {
 	});
 }
 //#endregion
-export { getRouter };
+export { getRouter, router_D09CTr2C_exports as t };

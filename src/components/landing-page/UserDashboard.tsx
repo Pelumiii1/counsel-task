@@ -1,4 +1,4 @@
-import mainImg from '../assets/landingpage/main.png'
+import mainImg from '../../assets/landingpage/main.png'
 
 export function UserDashboard() {
   return (

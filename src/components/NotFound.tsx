@@ -43,7 +43,8 @@ export function NotFound() {
 
         {/* Subtitle */}
         <p className="font-secondary text-sm md:text-base text-[#242424] max-w-md leading-relaxed mb-10">
-          The page you are looking for doesn't exist, has been removed, or is temporarily unavailable. Let's get you back on track.
+          The page you are looking for doesn't exist, has been removed, or is
+          temporarily unavailable. Let's get you back on track.
         </p>
 
         {/* CTA Buttons */}

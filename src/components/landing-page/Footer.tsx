@@ -1,4 +1,4 @@
-import logoImg from '../assets/logo-white.png'
+import logoImg from '../../assets/logo-white.png'
 
 export function Footer() {
   const columns = [
