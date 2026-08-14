@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Search, ListFilter } from 'lucide-react'
 import Post from '../../../assets/engaging-lawyers/post-job.png'
 import Apply from '../../../assets/engaging-lawyers/apply-job.png'
@@ -63,6 +63,7 @@ const DEFAULT_TASKS: Task[] = [
 ]
 
 function DashboardIndex() {
+  const navigate = useNavigate()
   const [tasks, setTasks] = useState<Task[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -274,6 +275,28 @@ function DashboardIndex() {
                       <tr
                         key={task.id}
                         className="hover:bg-gray-50/50 transition text-sm font-normal text-[#242424] cursor-pointer"
+                        onClick={() => {
+                          if (task.status === 'Open') {
+                            navigate({
+                              to: `/dashboard/review-proposals/${task.id}`,
+                            })
+                          } else if (task.status === 'In Progress') {
+                            navigate({
+                              to: `/dashboard/messages/$taskId`,
+                              params: { taskId: task.id },
+                            })
+                          } else if (task.status === 'Awaiting review') {
+                            navigate({
+                              to: `/dashboard/review-work/$taskId`,
+                              params: { taskId: task.id },
+                            })
+                          } else {
+                            navigate({
+                              to: `/dashboard/your-rating/$taskId`,
+                              params: { taskId: task.id },
+                            })
+                          }
+                        }}
                       >
                         {/* Checkbox cell */}
                         <td

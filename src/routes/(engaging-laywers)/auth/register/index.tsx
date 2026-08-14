@@ -5,6 +5,7 @@ import Seal from '../../../../assets/engaging-lawyers/counseltask-verification-s
 import { AccountDetailsForm } from '#/components/engaging-lawyers/AccountDetailsForm'
 import { OtpConfirmationForm } from '#/components/engaging-lawyers/OtpConfirmationForm'
 import { ProfessionalCredentialsForm } from '#/components/engaging-lawyers/ProfessionalCredentialsForm'
+import { BankDetailsForm } from '#/components/engaging-lawyers/BankDetailsForm'
 import { AccountStatus } from '#/components/engaging-lawyers/AccountStatus'
 
 export const Route = createFileRoute('/(engaging-laywers)/auth/register/')({
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/(engaging-laywers)/auth/register/')({
 })
 
 function AuthRegisterPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [showOtp, setShowOtp] = useState(false)
 
   // Step 1 Form States
@@ -103,7 +104,15 @@ function AuthRegisterPage() {
             />
           )}
 
-          {step === 3 && <AccountStatus />}
+          {step === 3 && (
+            <BankDetailsForm
+              fullName={step1Values.fullName}
+              onBack={() => setStep(2)}
+              onProceed={() => setStep(4)}
+            />
+          )}
+
+          {step === 4 && <AccountStatus />}
         </div>
       </section>
     </main>

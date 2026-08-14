@@ -4,7 +4,8 @@ import {
   Link,
   useLocation,
 } from '@tanstack/react-router'
-import { Bell, ChevronsUpDown, Building2 } from 'lucide-react'
+import { Bell, ChevronsUpDown } from 'lucide-react'
+import LogoWhite from '#/assets/logo-white.png'
 
 export const Route = createFileRoute('/(engaging-laywers)/dashboard')({
   component: DashboardLayout,
@@ -30,23 +31,20 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-[#f9fafb] flex font-secondary overflow-hidden">
       {/* Constant Left Sidebar */}
-      <aside className="w-[260px] h-screen bg-[#031625] text-white flex flex-col justify-between shrink-0 select-none border-r border-[#0d2235]">
+      <aside className="w-65 h-screen bg-[#031625] text-white flex flex-col justify-between shrink-0 select-none border-r border-[#0d2235]">
         {/* Top Section */}
         <div className="flex flex-col">
           {/* Organization Switcher Header */}
           <div className="p-4 flex items-center justify-between border-b border-[#0d2235] hover:bg-[#071f32] transition cursor-pointer">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#0e2c44] flex items-center justify-center text-white">
-                <Building2 className="w-4 h-4 stroke-[1.8]" />
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-semibold leading-tight text-white">
-                  Acme Inc
-                </span>
-                <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                  Enterprise
-                </span>
-              </div>
+              <img
+                src={LogoWhite}
+                alt="Counsel Task Logo"
+                className="h-9 w-auto object-contain select-none"
+              />
+              <span className="text-[14px] font-normal font-secondary text-white select-none">
+                Counsel Task
+              </span>
             </div>
             <ChevronsUpDown className="w-4 h-4 text-gray-400" />
           </div>
@@ -66,10 +64,10 @@ function DashboardLayout() {
                 <Link
                   key={item.label}
                   to={item.path}
-                  className={`flex items-center w-full h-10 px-3 rounded-lg text-sm font-medium transition duration-200 cursor-pointer ${
+                  className={`flex items-center w-full h-10 px-3 rounded-lg text-sm font-medium transition duration-100 cursor-pointer ${
                     active
-                      ? 'bg-[#00726d] text-white font-semibold'
-                      : 'text-gray-400 hover:text-white hover:bg-[#071f32]'
+                      ? 'text-white font-semibold'
+                      : 'text-gray-400 hover:bg-white'
                   }`}
                 >
                   {item.label}
@@ -108,16 +106,22 @@ function DashboardLayout() {
         <header className="h-17.5 w-full border-b border-gray-100 bg-white px-6 sm:px-12 flex items-center justify-end shrink-0 select-none">
           {/* Right Side: Notification & Avatar */}
           <div className="flex items-center gap-6">
-            <button className="text-gray-400 hover:text-gray-600 transition relative focus:outline-none cursor-pointer p-1">
+            <Link
+              to="/dashboard/notifications"
+              className="text-gray-400 hover:text-gray-600 transition relative focus:outline-none cursor-pointer p-1"
+            >
               <Bell className="w-5.5 h-5.5 stroke-[1.8]" />
-            </button>
-            <div className="w-9.5 h-9.5 rounded-full border border-gray-100 overflow-hidden cursor-pointer">
+            </Link>
+            <Link
+              to="/dashboard/settings"
+              className="w-9.5 h-9.5 rounded-full border border-gray-100 overflow-hidden cursor-pointer block"
+            >
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120&h=120"
                 alt="Oluwarotimi"
                 className="w-full h-full object-cover"
               />
-            </div>
+            </Link>
           </div>
         </header>
 

@@ -94,7 +94,7 @@ function PostJobPage() {
       </section>
 
       {/* Main post form block */}
-      <section className="flex-1 w-full max-w-4xl mx-auto px-6 py-10 sm:px-12">
+      <section className="flex-1 w-full px-6 py-10 sm:px-12">
         <div className="flex flex-col gap-1.5 select-none">
           <h2 className="font-primary text-2xl font-semibold text-black">
             Post a task

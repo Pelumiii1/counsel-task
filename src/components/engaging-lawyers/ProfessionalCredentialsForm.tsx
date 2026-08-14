@@ -129,7 +129,7 @@ export function ProfessionalCredentialsForm({
         <div className="flex items-center gap-3">
           <span className="h-0.5 w-8 bg-[#00726D]" />
           <p className="font-secondary text-[12px] font-bold uppercase tracking-[0.2em] text-[#00726D]">
-            STEP 2/2
+            STEP 2/3
           </p>
         </div>
 

@@ -75,7 +75,7 @@ export function OtpConfirmationForm({
         <div className="flex items-center gap-3">
           <span className="h-[2px] w-8 bg-[#00726D]" />
           <p className="font-secondary text-[12px] font-bold uppercase tracking-[0.2em] text-[#00726D]">
-            STEP 1/2
+            STEP 1/3
           </p>
         </div>
 
