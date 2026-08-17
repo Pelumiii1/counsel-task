@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   createFileRoute,
   Outlet,
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/(engaging-laywers)/dashboard')({
 
 function DashboardLayout() {
   const location = useLocation()
+  const [role, setRole] = useState<'engaging' | 'assisting'>('engaging')
 
   // Helper check for active menu link styling
   const isActive = (path: string) => {
@@ -42,9 +44,14 @@ function DashboardLayout() {
                 alt="Counsel Task Logo"
                 className="h-9 w-auto object-contain select-none"
               />
-              <span className="text-[14px] font-normal font-secondary text-white select-none">
-                Counsel Task
-              </span>
+              <div className="flex flex-col">
+                <span className="text-[14px] font-normal font-secondary text-white select-none leading-tight">
+                  Counsel Task
+                </span>
+                <span className="text-[10px] text-[#00a896] capitalize font-medium">
+                  {role === 'engaging' ? 'Engaging Lawyer' : 'Assisting Lawyer'}
+                </span>
+              </div>
             </div>
             <ChevronsUpDown className="w-4 h-4 text-gray-400" />
           </div>
@@ -82,7 +89,7 @@ function DashboardLayout() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#ef4444]/90 flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=80&h=80"
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=80&h=80"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -104,21 +111,36 @@ function DashboardLayout() {
       <div className="flex-1 h-screen flex flex-col overflow-hidden">
         {/* Constant Top Header Navbar */}
         <header className="h-17.5 w-full border-b border-gray-100 bg-white px-6 sm:px-12 flex items-center justify-end shrink-0 select-none">
-          {/* Right Side: Notification & Avatar */}
-          <div className="flex items-center gap-6">
+          {/* Right Side: Switcher Pill Button, Notification & Avatar */}
+          <div className="flex items-center gap-5 sm:gap-6">
+            <button
+              type="button"
+              onClick={() =>
+                setRole((prev) => (prev === 'engaging' ? 'assisting' : 'engaging'))
+              }
+              className="h-9.5 px-4 sm:px-5 rounded-full border border-[#96D2CD] bg-[#E8F5F3] hover:bg-[#D8EFEA] hover:border-[#00726D]/50 text-[#00726D] text-[13px] sm:text-[13.5px] font-medium transition-all duration-200 cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs"
+            >
+              {role === 'engaging'
+                ? 'Switch to Assisting Lawyer'
+                : 'Switch to Engaging Lawyer'}
+            </button>
+
             <Link
               to="/dashboard/notifications"
-              className="text-gray-400 hover:text-gray-600 transition relative focus:outline-none cursor-pointer p-1"
+              className="text-gray-500 hover:text-gray-700 transition relative focus:outline-none cursor-pointer p-1"
+              aria-label="Notifications"
             >
               <Bell className="w-5.5 h-5.5 stroke-[1.8]" />
             </Link>
+
             <Link
               to="/dashboard/settings"
-              className="w-9.5 h-9.5 rounded-full border border-gray-100 overflow-hidden cursor-pointer block"
+              className="w-10 h-10 rounded-full border border-gray-100 overflow-hidden cursor-pointer block shrink-0"
+              aria-label="Account Settings"
             >
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120&h=120"
-                alt="Oluwarotimi"
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
+                alt="Profile Avatar"
                 className="w-full h-full object-cover"
               />
             </Link>
