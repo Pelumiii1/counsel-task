@@ -1,17 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Search,
-  ListFilter,
   MapPin,
   Clock,
   Briefcase,
   CheckCircle2,
   Send,
   SlidersHorizontal,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Link2,
+  RotateCcw,
+  RotateCw,
+  Sparkles,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/(assisting-lawyers)/assisting-dashboard/')({
+export const Route = createFileRoute(
+  '/(assisting-lawyers)/assisting-dashboard/',
+)({
   component: AssistingDashboardIndex,
 })
 
@@ -115,6 +124,32 @@ const AVAILABLE_TASKS: AvailableTask[] = [
 ]
 
 function AssistingDashboardIndex() {
+  // Check if assisting lawyer has completed profile
+  const [isProfileFilled, setIsProfileFilled] = useState<boolean>(false)
+
+  // Profile Form States
+  const [practiceAreas, setPracticeAreas] = useState<string[]>([
+    'Property Law',
+    'Commercial Litigation',
+    'Tenancy & Real Estate',
+  ])
+  const [courtsCovered, setCourtsCovered] = useState<string[]>([
+    'Ikeja High Court',
+    'Yaba Magistrate Court',
+  ])
+  const [weeklyAvailability, setWeeklyAvailability] = useState<string[]>([
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+  ])
+  const [yearsOfPractice, setYearsOfPractice] = useState<string>('9')
+  const [callToBarDate, setCallToBarDate] = useState<string>('02/11/2026')
+  const [bio, setBio] = useState<string>(
+    'Called to bar in 2018. Focused on property and land dispute matters across Lagos State courts. Based five minutes from Ikeja High Court, available for short-notice hearings most weekdays.',
+  )
+
+  // Browse Feed States
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [appliedTasks, setAppliedTasks] = useState<string[]>([])
@@ -122,6 +157,70 @@ function AssistingDashboardIndex() {
   const [proposalBid, setProposalBid] = useState('')
   const [proposalCover, setProposalCover] = useState('')
   const [showSuccessToast, setShowSuccessToast] = useState(false)
+
+  // Load profile status from localStorage
+  useEffect(() => {
+    const storedStatus = localStorage.getItem('counsel_assisting_profile_filled')
+    if (storedStatus === 'true') {
+      setIsProfileFilled(true)
+    } else {
+      setIsProfileFilled(false)
+    }
+  }, [])
+
+  const togglePracticeArea = (area: string) => {
+    setPracticeAreas((prev) =>
+      prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area],
+    )
+  }
+
+  const toggleCourt = (court: string) => {
+    setCourtsCovered((prev) =>
+      prev.includes(court) ? prev.filter((c) => c !== court) : [...prev, court],
+    )
+  }
+
+  const toggleDay = (day: string) => {
+    setWeeklyAvailability((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    )
+  }
+
+  const handleSaveProfile = () => {
+    localStorage.setItem('counsel_assisting_profile_filled', 'true')
+    setIsProfileFilled(true)
+  }
+
+  const handleResetProfile = () => {
+    localStorage.setItem('counsel_assisting_profile_filled', 'false')
+    setIsProfileFilled(false)
+  }
+
+  const practiceAreaOptions = [
+    'Property Law',
+    'Commercial Litigation',
+    'Criminal Law',
+    'Family Law',
+    'Tenancy & Real Estate',
+    'Corporate & Contracts',
+  ]
+
+  const courtOptions = [
+    'Ikeja High Court',
+    'Lagos High Court',
+    'Yaba Magistrate Court',
+    'Federal High Court, Lagos',
+  ]
+
+  const daysOfWeek = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
 
   const categories = [
     'All',
@@ -163,179 +262,465 @@ function AssistingDashboardIndex() {
 
   return (
     <div className="flex flex-col w-full min-h-full pb-16">
-      {/* Welcome Banner Header */}
+      {/* Top Welcome Banner */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-black leading-tight">
-              Welcome back, Funke!
-            </h1>
-            <span className="inline-flex items-center gap-1 bg-[#E8F5F3] text-[#00726D] text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-[#96D2CD]">
-              <CheckCircle2 className="w-3 h-3" />
-              Verified Assisting Counsel
-            </span>
-          </div>
+          <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-[#00726D] leading-tight">
+            Welcome Oluwarotimi!!
+          </h1>
           <p className="font-secondary text-[13px] text-gray-500 font-normal">
-            Browse verified briefs and available tasks from engaging law firms across Nigeria.
+            What action are you taking today
           </p>
+
+          {/* Tester controls to easily test both states */}
+          <div className="mt-2 flex items-center gap-3 text-[11px]">
+            <button
+              onClick={handleResetProfile}
+              className={`transition cursor-pointer font-medium ${
+                !isProfileFilled
+                  ? 'text-[#00726D] font-bold underline'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              Test Unfilled Profile (Build Profile UI)
+            </button>
+            <span className="text-gray-300">|</span>
+            <button
+              onClick={handleSaveProfile}
+              className={`transition cursor-pointer font-medium ${
+                isProfileFilled
+                  ? 'text-[#00726D] font-bold underline'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              Test Completed Profile (Browse Tasks UI)
+            </button>
+          </div>
         </div>
 
-        {/* Quick Stats pill badges */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
-            <span className="text-[11px] text-gray-400 font-medium uppercase">Active Briefs</span>
-            <span className="text-base font-bold text-gray-900">14 Available</span>
-          </div>
-          <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
-            <span className="text-[11px] text-gray-400 font-medium uppercase">My Proposals</span>
-            <span className="text-base font-bold text-[#00726D]">{appliedTasks.length} Submitted</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Browse Task Feed */}
-      <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
-        {/* Search & Categories Bar */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <span className="absolute inset-y-0 left-3.5 flex items-center text-gray-400 pointer-events-none">
-                <Search className="w-4.5 h-4.5" />
+        {isProfileFilled && (
+          <div className="flex items-center gap-3">
+            <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
+              <span className="text-[11px] text-gray-400 font-medium uppercase">
+                Active Briefs
               </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search brief by court, practice area, or keyword..."
-                className="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
-              />
+              <span className="text-base font-bold text-gray-900">
+                14 Available
+              </span>
             </div>
-
-            {/* Filter buttons */}
-            <div className="flex items-center gap-2">
-              <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
-                <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                <span>Jurisdiction: Lagos</span>
-              </button>
-              <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
-                <span>Filter Budget</span>
-              </button>
+            <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
+              <span className="text-[11px] text-gray-400 font-medium uppercase">
+                My Proposals
+              </span>
+              <span className="text-base font-bold text-[#00726D]">
+                {appliedTasks.length} Submitted
+              </span>
             </div>
           </div>
-
-          {/* Category Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                  selectedCategory === cat
-                    ? 'bg-[#00726D] text-white shadow-xs'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Task Cards List */}
-        <div className="flex flex-col gap-4">
-          {filteredTasks.length > 0 ? (
-            filteredTasks.map((task) => {
-              const hasApplied = appliedTasks.includes(task.id)
-
-              return (
-                <div
-                  key={task.id}
-                  className="bg-white border border-gray-150 rounded-2xl p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.02)] hover:border-[#00726D]/30 transition-all flex flex-col gap-4"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                          {task.category}
-                        </span>
-                        <span className="text-[11px] text-gray-400 font-normal">
-                          Posted {task.postedTime}
-                        </span>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
-                        {task.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                        <span className="font-medium text-gray-700">{task.clientName}</span>
-                        <span>•</span>
-                        <span>{task.clientFirm}</span>
-                      </div>
-                    </div>
-
-                    {/* Budget & Apply Action */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0">
-                      <div className="flex flex-col sm:text-right">
-                        <span className="text-[11px] text-gray-400 font-medium">Task Fee</span>
-                        <span className="text-lg font-bold text-[#00726D]">{task.budget}</span>
-                      </div>
-
-                      {hasApplied ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3.5 py-1.5 rounded-lg">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Proposal Sent
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleApplyClick(task)}
-                          className="h-9 px-4 rounded-lg bg-[#00726D] text-white text-xs font-medium hover:bg-[#005c58] transition active:scale-[0.98] cursor-pointer shadow-2xs"
-                        >
-                          Submit Proposal
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 leading-relaxed font-normal">
-                    {task.description}
-                  </p>
-
-                  {/* Task Meta Footer */}
-                  <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                        <span>{task.court}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
-                        <span>{task.deadline}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 text-gray-400 text-[11px]">
-                      <Briefcase className="w-3.5 h-3.5" />
-                      <span>{task.proposalsCount} lawyers submitted proposals</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
-          ) : (
-            <div className="bg-white border border-gray-150 rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3">
-              <Briefcase className="w-10 h-10 text-gray-300" />
-              <h3 className="text-base font-semibold text-gray-800">No briefs found</h3>
-              <p className="text-xs sm:text-sm text-gray-500 max-w-sm">
-                No active tasks match your selected filter. Try adjusting your search or category.
-              </p>
-            </div>
-          )}
-        </div>
+        )}
       </section>
+
+      {/* ========================================================================= */}
+      {/* 1. UNFILLED PROFILE ONBOARDING VIEW (Exact UI from user design)           */}
+      {/* ========================================================================= */}
+      {!isProfileFilled ? (
+        <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
+          {/* Heading */}
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-2xl sm:text-[28px] font-bold text-gray-900 tracking-tight">
+              Build your profile
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 font-normal max-w-2xl">
+              This is what engaging lawyers see when reviewing your proposals.
+              The more complete it is, the better your matches.
+            </p>
+          </div>
+
+          {/* Main Form Container Card */}
+          <div className="bg-white border border-gray-150 rounded-3xl p-6 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col gap-8 max-w-4xl">
+            {/* Section A: Practice Areas */}
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-semibold text-gray-900">
+                Practice Areas (select all that apply)
+              </label>
+              <div className="flex flex-wrap gap-2.5">
+                {practiceAreaOptions.map((area) => {
+                  const isSelected = practiceAreas.includes(area)
+                  return (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() => togglePracticeArea(area)}
+                      className={`h-9.5 px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
+                        isSelected
+                          ? 'bg-[#041626] text-white shadow-xs'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                      }`}
+                    >
+                      {area}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Section B: Courts / Locations Covered */}
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-semibold text-gray-900">
+                Courts / Locations Covered
+              </label>
+              <div className="flex flex-wrap gap-2.5">
+                {courtOptions.map((court) => {
+                  const isSelected = courtsCovered.includes(court)
+                  return (
+                    <button
+                      key={court}
+                      type="button"
+                      onClick={() => toggleCourt(court)}
+                      className={`h-9.5 px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
+                        isSelected
+                          ? 'bg-[#041626] text-white shadow-xs'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                      }`}
+                    >
+                      {court}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Section C: Weekly Availability */}
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-semibold text-gray-900">
+                Weekly Availability
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {daysOfWeek.map((day) => {
+                  const isSelected = weeklyAvailability.includes(day)
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => toggleDay(day)}
+                      className={`h-9 px-4 rounded-lg text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
+                        isSelected
+                          ? 'bg-[#E8F5F3] border border-[#86D2CA] text-[#00726D] font-semibold'
+                          : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50/60'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Section D: Years of Practice & Call to Bar Date (2 columns) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-900">
+                  Years of Practice <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={yearsOfPractice}
+                  onChange={(e) => setYearsOfPractice(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
+                  placeholder="e.g. 9"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-900">
+                  Call to Bar Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={callToBarDate}
+                  onChange={(e) => setCallToBarDate(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
+                  placeholder="DD/MM/YYYY"
+                />
+              </div>
+            </div>
+
+            {/* Section E: Short Bio (with Rich Text formatting toolbar) */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-gray-900">
+                Short Bio (visible on your profile){' '}
+                <span className="text-red-500">*</span>
+              </label>
+
+              {/* Rich text container */}
+              <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#00726D] focus-within:ring-2 focus-within:ring-[#00726D]/10 transition shadow-2xs">
+                {/* Toolbar */}
+                <div className="p-2.5 bg-white border-b border-gray-150 flex items-center gap-1 text-gray-600 select-none">
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Bold"
+                  >
+                    <Bold className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Italic"
+                  >
+                    <Italic className="w-4 h-4" />
+                  </button>
+                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Bullet List"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Numbered List"
+                  >
+                    <ListOrdered className="w-4 h-4" />
+                  </button>
+                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Insert Link"
+                  >
+                    <Link2 className="w-4 h-4" />
+                  </button>
+                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Undo"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
+                    title="Redo"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Textarea */}
+                <textarea
+                  rows={4}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full p-4 text-xs sm:text-sm text-gray-700 font-normal leading-relaxed focus:outline-none resize-none bg-white"
+                  placeholder="Write a brief professional summary..."
+                />
+              </div>
+            </div>
+
+            {/* Section F: Profile Preview Card */}
+            <div className="bg-[#EBF5F4] border border-[#D5EBE8] rounded-2xl p-5 sm:p-6 flex flex-col gap-4">
+              <span className="text-[11px] font-bold text-[#00726D] tracking-widest uppercase">
+                Profile Preview
+              </span>
+
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#00726D] text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 select-none">
+                  FA
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-gray-900 leading-tight">
+                    Funke Adeyemi
+                  </span>
+                  <span className="text-xs text-gray-600 mt-0.5">
+                    {practiceAreas.slice(0, 2).join(', ') || 'General Practice'} •{' '}
+                    {yearsOfPractice || '8'} years practice •{' '}
+                    {courtsCovered[0]?.replace(' High Court', '') || 'Lagos'}, Nigeria
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section G: Action Buttons Footer */}
+            <div className="pt-2 flex items-center justify-end gap-3.5">
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                className="h-11 px-6 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm font-semibold transition cursor-pointer shadow-2xs"
+              >
+                Save to draft
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                className="h-11 px-7 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs active:scale-[0.99]"
+              >
+                Save &amp; Browse Tasks
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : (
+        /* ========================================================================= */
+        /* 2. COMPLETED PROFILE VIEW: ACTIVE BROWSE TASKS FEED                      */
+        /* ========================================================================= */
+        <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
+          {/* Search & Categories Bar */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-3.5 flex items-center text-gray-400 pointer-events-none">
+                  <Search className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search brief by court, practice area, or keyword..."
+                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
+                />
+              </div>
+
+              {/* Filter buttons */}
+              <div className="flex items-center gap-2">
+                <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
+                  <MapPin className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Jurisdiction: Lagos</span>
+                </button>
+                <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Filter Budget</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                    selectedCategory === cat
+                      ? 'bg-[#00726D] text-white shadow-xs'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Task Cards List */}
+          <div className="flex flex-col gap-4">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => {
+                const hasApplied = appliedTasks.includes(task.id)
+
+                return (
+                  <div
+                    key={task.id}
+                    className="bg-white border border-gray-150 rounded-2xl p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.02)] hover:border-[#00726D]/30 transition-all flex flex-col gap-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            {task.category}
+                          </span>
+                          <span className="text-[11px] text-gray-400 font-normal">
+                            Posted {task.postedTime}
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
+                          {task.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                          <span className="font-medium text-gray-700">
+                            {task.clientName}
+                          </span>
+                          <span>•</span>
+                          <span>{task.clientFirm}</span>
+                        </div>
+                      </div>
+
+                      {/* Budget & Apply Action */}
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0">
+                        <div className="flex flex-col sm:text-right">
+                          <span className="text-[11px] text-gray-400 font-medium">
+                            Task Fee
+                          </span>
+                          <span className="text-lg font-bold text-[#00726D]">
+                            {task.budget}
+                          </span>
+                        </div>
+
+                        {hasApplied ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3.5 py-1.5 rounded-lg">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Proposal Sent
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleApplyClick(task)}
+                            className="h-9 px-4 rounded-lg bg-[#00726D] text-white text-xs font-medium hover:bg-[#005c58] transition active:scale-[0.98] cursor-pointer shadow-2xs"
+                          >
+                            Submit Proposal
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-gray-600 leading-relaxed font-normal">
+                      {task.description}
+                    </p>
+
+                    {/* Task Meta Footer */}
+                    <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                          <span>{task.court}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-gray-400" />
+                          <span>{task.deadline}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-gray-400 text-[11px]">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        <span>
+                          {task.proposalsCount} lawyers submitted proposals
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="bg-white border border-gray-150 rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3">
+                <Briefcase className="w-10 h-10 text-gray-300" />
+                <h3 className="text-base font-semibold text-gray-800">
+                  No briefs found
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-500 max-w-sm">
+                  No active tasks match your selected filter. Try adjusting your
+                  search or category.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Submit Proposal Modal */}
       {applyingTask && (
