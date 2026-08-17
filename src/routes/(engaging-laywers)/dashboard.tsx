@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   createFileRoute,
   Outlet,
@@ -14,7 +13,6 @@ export const Route = createFileRoute('/(engaging-laywers)/dashboard')({
 
 function DashboardLayout() {
   const location = useLocation()
-  const [role, setRole] = useState<'engaging' | 'assisting'>('engaging')
 
   // Helper check for active menu link styling
   const isActive = (path: string) => {
@@ -44,14 +42,9 @@ function DashboardLayout() {
                 alt="Counsel Task Logo"
                 className="h-9 w-auto object-contain select-none"
               />
-              <div className="flex flex-col">
-                <span className="text-[14px] font-normal font-secondary text-white select-none leading-tight">
-                  Counsel Task
-                </span>
-                <span className="text-[10px] text-[#00a896] capitalize font-medium">
-                  {role === 'engaging' ? 'Engaging Lawyer' : 'Assisting Lawyer'}
-                </span>
-              </div>
+              <span className="text-[14px] font-normal font-secondary text-white select-none">
+                Counsel Task
+              </span>
             </div>
             <ChevronsUpDown className="w-4 h-4 text-gray-400" />
           </div>
@@ -89,17 +82,17 @@ function DashboardLayout() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#ef4444]/90 flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=80&h=80"
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80&h=80"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-semibold leading-tight text-white">
-                shadcn
+                Oluwarotimi
               </span>
               <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                m@example.com
+                Engaging Lawyer
               </span>
             </div>
           </div>
