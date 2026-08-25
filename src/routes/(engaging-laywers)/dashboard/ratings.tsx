@@ -44,23 +44,7 @@ function RatingsPage() {
         }
       })
     }
-
-    // Default mock reviews from screenshot
-    const defaultReviews: Review[] = [
-      {
-        lawyer: 'Funke Adeyemi',
-        rating: 5,
-        feedback:
-          'Excellent — arrived early and sent a clear hearing note straight after.',
-      },
-      {
-        lawyer: 'Chiamaka Bello',
-        rating: 5,
-        feedback: 'Very thorough, handled the bail application professionally.',
-      },
-    ]
-
-    setReviews([...dynamicReviews, ...defaultReviews])
+    setReviews(dynamicReviews)
   }, [])
 
   return (

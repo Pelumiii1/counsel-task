@@ -1,155 +1,299 @@
 import { useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { CheckCircle2, Clock, FileText, MessageSquare, AlertCircle } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import {
+  Search,
+  SlidersHorizontal,
+  CheckCircle2,
+  Check,
+  X,
+} from 'lucide-react'
+import { useMyProposals } from '#/hooks/useProposals'
+import { formatCurrency } from '#/lib/formatters'
 
-export const Route = createFileRoute('/(assisting-lawyers)/assisting-dashboard/proposals')({
+export const Route = createFileRoute(
+  '/(assisting-lawyers)/assisting-dashboard/proposals',
+)({
   component: MyProposalsPage,
 })
 
 interface Proposal {
   id: string
+  taskId: string
   taskTitle: string
-  clientName: string
-  court: string
-  proposedFee: string
-  submittedDate: string
-  status: 'Under Review' | 'Accepted' | 'Completed' | 'Declined'
+  practiceArea: string
+  client: string
+  feeQuoted: string
+  dateSent: string
+  status: 'Awaiting response' | 'Declined' | 'Selected'
+  note: string
+  declineReason?: string
 }
 
-const MY_PROPOSALS: Proposal[] = [
-  {
-    id: 'p-1',
-    taskTitle: 'Hold Brief — Motion for Injunction Hearing',
-    clientName: 'Adeola & Partners LP',
-    court: 'Ikeja High Court',
-    proposedFee: '₦40,000',
-    submittedDate: 'Today, 10:15 AM',
-    status: 'Under Review',
-  },
-  {
-    id: 'p-2',
-    taskTitle: 'Draft Statement of Defence',
-    clientName: 'Kazeem Lawal & Co.',
-    court: 'Federal High Court, Ikoyi',
-    proposedFee: '₦120,000',
-    submittedDate: 'Yesterday',
-    status: 'Accepted',
-  },
-  {
-    id: 'p-3',
-    taskTitle: 'Court Appearance — Bail Hearing',
-    clientName: 'Oluwarotimi Chambers',
-    court: 'Yaba Magistrate Court',
-    proposedFee: '₦45,000',
-    submittedDate: '3 days ago',
-    status: 'Completed',
-  },
-]
-
 function MyProposalsPage() {
-  const [activeTab, setActiveTab] = useState<'All' | 'Under Review' | 'Accepted' | 'Completed'>('All')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('All')
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false)
+  const [showNotificationBanner, setShowNotificationBanner] = useState(true)
+  const [selectedProposalForModal, setSelectedProposalForModal] =
+    useState<Proposal | null>(null)
 
-  const filteredProposals = MY_PROPOSALS.filter((p) => {
-    if (activeTab === 'All') return true
-    return p.status === activeTab
+  const { data: serverProposals } = useMyProposals()
+
+  const proposalsList: Proposal[] =
+    serverProposals && serverProposals.length > 0
+      ? serverProposals.map((p) => ({
+          id: String(p.id),
+          taskId: String(p.taskId),
+          taskTitle: p.taskTitle || 'Legal Brief',
+          practiceArea: p.practiceArea || 'Property Law',
+          client: p.name || 'Engaging Counsel',
+          feeQuoted: formatCurrency(p.fee),
+          dateSent: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent',
+          status: (p.status as any) || 'Awaiting response',
+          note: p.quote || 'Proposal submitted for this matter.',
+        }))
+      : []
+
+  const filteredProposals = proposalsList.filter((p) => {
+    const matchesSearch =
+      p.taskTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.practiceArea.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesStatus =
+      statusFilter === 'All' || p.status === statusFilter
+
+    return matchesSearch && matchesStatus
   })
 
   const getStatusBadge = (status: Proposal['status']) => {
     switch (status) {
-      case 'Under Review':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
-      case 'Accepted':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-      case 'Completed':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'Awaiting response':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-[#EFEFEF] text-gray-700 select-none">
+            Awaiting response
+          </span>
+        )
       case 'Declined':
-        return 'bg-rose-50 text-rose-700 border-rose-200'
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-[#FDE8E8] text-[#E05252] select-none">
+            Declined
+          </span>
+        )
+      case 'Selected':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-[#DDF4EC] text-[#00726D] select-none">
+            Selected
+          </span>
+        )
     }
   }
 
+  const handleRowClick = (proposal: Proposal) => {
+    setSelectedProposalForModal(proposal)
+  }
+
   return (
-    <div className="flex flex-col w-full min-h-full pb-16">
-      {/* Header */}
+    <div className="flex flex-col w-full min-h-full pb-20 font-secondary">
+      {/* Top Banner Header */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col gap-1 select-none">
-        <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-black leading-tight">
-          My Proposals
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
+          Welcome Oluwarotimi!!
         </h1>
-        <p className="font-secondary text-[13px] text-gray-500 font-normal">
-          Track the status of all briefs and task proposals you have submitted.
+        <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
+          What action are you taking today
         </p>
       </section>
 
-      {/* Content */}
+      {/* Main Content Section */}
       <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
-          {(['All', 'Under Review', 'Accepted', 'Completed'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                activeTab === tab
-                  ? 'bg-[#00726D] text-white shadow-2xs'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Title & Subtitle */}
+        <div className="flex flex-col gap-1">
+          <h2 className="text-2xl sm:text-[28px] font-semibold text-gray-900 leading-tight font-primary">
+            All proposals sent
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 font-normal">
+            Every proposal you've submitted, with its current status. Click a row for the full detail
+          </p>
         </div>
 
-        {/* Proposals List */}
-        <div className="flex flex-col gap-3">
-          {filteredProposals.map((proposal) => (
-            <div
-              key={proposal.id}
-              className="bg-white border border-gray-150 rounded-2xl p-5 shadow-2xs hover:border-[#00726D]/30 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        {/* Search and Filter Bar */}
+        <div className="flex items-center gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-xs">
+            <span className="absolute inset-y-0 left-3.5 flex items-center text-gray-400 pointer-events-none">
+              <Search className="w-4 h-4" />
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search task"
+              className="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-normal text-gray-900 placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+              className="h-10 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium flex items-center gap-2 transition cursor-pointer shadow-2xs select-none"
             >
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#E8F5F3] text-[#00726D] flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm sm:text-base font-semibold text-gray-900">
-                    {proposal.taskTitle}
-                  </span>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>Engaging Lawyer: <strong className="text-gray-700">{proposal.clientName}</strong></span>
-                    <span>•</span>
-                    <span>{proposal.court}</span>
-                  </div>
-                  <span className="text-[11px] text-gray-400 mt-1">Submitted {proposal.submittedDate}</span>
-                </div>
-              </div>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
+              <span>Status{statusFilter !== 'All' ? `: ${statusFilter}` : ''}</span>
+            </button>
 
-              <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                <div className="flex flex-col sm:text-right">
-                  <span className="text-[11px] text-gray-400">Proposed Fee</span>
-                  <span className="text-sm font-bold text-[#00726D]">{proposal.proposedFee}</span>
-                </div>
-
-                <span
-                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${getStatusBadge(
-                    proposal.status,
-                  )}`}
-                >
-                  {proposal.status}
-                </span>
-
-                {proposal.status === 'Accepted' && (
-                  <Link
-                    to="/assisting-dashboard/messages"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#00726D] hover:bg-[#005c58] px-3.5 py-1.5 rounded-lg transition"
+            {showStatusDropdown && (
+              <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-[170px] flex flex-col gap-1 text-xs">
+                {['All', 'Awaiting response', 'Selected', 'Declined'].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(s)
+                      setShowStatusDropdown(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition cursor-pointer ${
+                      statusFilter === s
+                        ? 'bg-[#E5F3F1] text-[#00726D] font-semibold'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    Open Chat
-                  </Link>
-                )}
+                    {s}
+                  </button>
+                ))}
               </div>
-            </div>
-          ))}
+            )}
+          </div>
+        </div>
+
+        {/* Proposals Data Table */}
+        <div className="w-full bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-[0_2px_15px_rgba(0,0,0,0.015)]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-150 text-xs font-semibold text-gray-600 bg-gray-50/50">
+                  <th className="py-4 px-6 font-semibold">Task</th>
+                  <th className="py-4 px-6 font-semibold">Client</th>
+                  <th className="py-4 px-6 font-semibold">Fee Quoted</th>
+                  <th className="py-4 px-6 font-semibold">Date Sent</th>
+                  <th className="py-4 px-6 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
+                {filteredProposals.length > 0 ? (
+                  filteredProposals.map((item) => (
+                    <tr
+                      key={item.id}
+                      onClick={() => handleRowClick(item)}
+                      className="hover:bg-gray-50/70 transition cursor-pointer"
+                    >
+                      {/* Task Column */}
+                      <td className="py-4.5 px-6">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-900">
+                            {item.taskTitle}
+                          </span>
+                          <span className="text-[11px] text-gray-500 font-normal mt-0.5">
+                            {item.practiceArea}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Client Column */}
+                      <td className="py-4.5 px-6 text-gray-700 font-normal">
+                        {item.client}
+                      </td>
+
+                      {/* Fee Quoted Column */}
+                      <td className="py-4.5 px-6 font-medium text-[#00726D] font-primary">
+                        {item.feeQuoted}
+                      </td>
+
+                      {/* Date Sent Column */}
+                      <td className="py-4.5 px-6 text-gray-500 font-normal">
+                        {item.dateSent}
+                      </td>
+
+                      {/* Status Column */}
+                      <td className="py-4.5 px-6">
+                        {getStatusBadge(item.status)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-8 px-6 text-center text-gray-500">
+                      No proposals found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
+
+      {/* Selected Proposal Detail Modal */}
+      {selectedProposalForModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-xl p-8 border border-gray-150 animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6">
+            <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xl font-bold text-gray-900 leading-tight font-primary">
+                  {selectedProposalForModal.taskTitle}
+                </h3>
+                <span className="text-xs text-gray-500 font-normal">
+                  {selectedProposalForModal.practiceArea} • Client: {selectedProposalForModal.client}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProposalForModal(null)}
+                className="text-gray-400 hover:text-gray-600 transition cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between border-y border-gray-100 py-3">
+                <span className="text-xs font-semibold text-gray-500">
+                  Fee Quoted
+                </span>
+                <span className="text-base font-bold text-[#00726D] font-primary">
+                  {selectedProposalForModal.feeQuoted}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-gray-500">
+                  Your Cover Note
+                </span>
+                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-150">
+                  "{selectedProposalForModal.note}"
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-semibold text-gray-500">Status</span>
+                <div>{getStatusBadge(selectedProposalForModal.status)}</div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedProposalForModal(null)}
+                className="h-10 px-6 rounded-xl bg-[#00726D] text-white text-xs sm:text-sm font-semibold hover:bg-[#005c58] transition cursor-pointer shadow-xs"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

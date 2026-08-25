@@ -11,6 +11,7 @@ interface AccountDetailsFormProps {
     password: string
     confirmPassword: string
   }
+  isLoading?: boolean
   onChange: (
     key:
       'fullName' | 'firm' | 'email' | 'phone' | 'password' | 'confirmPassword',
@@ -21,6 +22,7 @@ interface AccountDetailsFormProps {
 
 export function AccountDetailsForm({
   values,
+  isLoading = false,
   onChange,
   onProceed,
 }: AccountDetailsFormProps) {
@@ -187,9 +189,10 @@ export function AccountDetailsForm({
       <div className="mt-8 flex justify-end">
         <button
           type="submit"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer"
+          disabled={isLoading}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <span>Continue</span>
+          <span>{isLoading ? 'Creating Account...' : 'Continue'}</span>
           <ChevronRight className="h-4 w-4 stroke-2" aria-hidden />
         </button>
       </div>

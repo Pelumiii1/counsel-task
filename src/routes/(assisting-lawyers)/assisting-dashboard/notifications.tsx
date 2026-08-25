@@ -1,90 +1,154 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Bell, Briefcase, CheckCircle, CreditCard, MessageSquare } from 'lucide-react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { CheckCheck, Bell, Loader2 } from 'lucide-react'
+import CardIcon from '#/assets/icons/card.png'
+import ClipboardIcon from '#/assets/icons/clipboard.png'
+import ChatIcon from '#/assets/icons/chat.png'
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  type NotificationItem,
+} from '#/hooks/useNotifications'
 
-export const Route = createFileRoute('/(assisting-lawyers)/assisting-dashboard/notifications')({
+export const Route = createFileRoute(
+  '/(assisting-lawyers)/assisting-dashboard/notifications',
+)({
   component: AssistingNotificationsPage,
 })
 
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'brief',
-    icon: Briefcase,
-    title: 'New Brief Match in your Practice Area',
-    desc: 'Adeola & Partners LP posted a new brief: "Motion for Injunction Hearing at Ikeja High Court".',
-    time: '20 minutes ago',
-    unread: true,
-  },
-  {
-    id: '2',
-    type: 'proposal',
-    icon: CheckCircle,
-    title: 'Proposal Accepted!',
-    desc: 'Kazeem Lawal & Co. accepted your proposal for Statement of Defence drafting.',
-    time: '3 hours ago',
-    unread: true,
-  },
-  {
-    id: '3',
-    type: 'payment',
-    icon: CreditCard,
-    title: 'Escrow Payment Funded',
-    desc: '₦45,000 escrow has been locked by Oluwarotimi Chambers for your completed bail hearing.',
-    time: '1 day ago',
-    unread: false,
-  },
-  {
-    id: '4',
-    type: 'message',
-    icon: MessageSquare,
-    title: 'New Message received',
-    desc: 'You received briefing notes from Adeola & Partners LP.',
-    time: '2 days ago',
-    unread: false,
-  },
-]
-
 function AssistingNotificationsPage() {
+  const navigate = useNavigate()
+  const { data: serverNotifications, isLoading } = useNotifications('assisting')
+  const markAsReadMutation = useMarkNotificationAsRead()
+  const markAllReadMutation = useMarkAllNotificationsAsRead('assisting')
+
+  const notifications: NotificationItem[] = serverNotifications || []
+  const hasUnread = notifications.some((n) => !n.isRead)
+
+  const handleNotificationClick = (item: NotificationItem) => {
+    if (!item.isRead) {
+      markAsReadMutation.mutate(item.id)
+    }
+
+    if (item.link) {
+      navigate({ to: item.link as any })
+    }
+  }
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'proposal':
+      case 'verification':
+        return (
+          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 select-none shadow-xs border border-gray-100">
+            <img
+              src={ClipboardIcon}
+              alt="Clipboard"
+              className="w-5 h-5 object-contain"
+            />
+          </div>
+        )
+      case 'fee':
+      case 'payment':
+        return (
+          <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center shrink-0 select-none shadow-xs border border-gray-100">
+            <img src={CardIcon} alt="Card" className="w-5 h-5 object-contain" />
+          </div>
+        )
+      case 'message':
+      default:
+        return (
+          <div className="w-10 h-10 rounded-full bg-[#EBF8FE] flex items-center justify-center shrink-0 select-none shadow-xs border border-gray-100">
+            <img src={ChatIcon} alt="Chat" className="w-5 h-5 object-contain" />
+          </div>
+        )
+    }
+  }
+
   return (
-    <div className="flex flex-col w-full min-h-full pb-16">
+    <div className="flex flex-col w-full min-h-full font-secondary bg-[#f9fafb] px-6 py-10 sm:px-12 gap-6 text-left">
       {/* Header */}
-      <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col gap-1 select-none">
-        <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-black leading-tight">
-          Notifications
-        </h1>
-        <p className="font-secondary text-[13px] text-gray-500 font-normal">
-          Stay updated with real-time brief opportunities, proposal status, and escrow payments.
-        </p>
-      </section>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none mb-2">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl sm:text-[28px] font-bold text-black font-primary">
+            Updates on your tasks
+          </h1>
+          <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
+            Real-time notifications for assigned tasks, escrow payments, and client messages.
+          </p>
+        </div>
 
-      {/* List */}
-      <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-3">
-        {NOTIFICATIONS.map((item) => {
-          const Icon = item.icon
+        {hasUnread && (
+          <button
+            onClick={() => markAllReadMutation.mutate()}
+            disabled={markAllReadMutation.isPending}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 text-xs font-semibold text-[#00726D] hover:bg-gray-50 transition cursor-pointer shadow-2xs shrink-0 self-start sm:self-auto"
+          >
+            {markAllReadMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <CheckCheck className="w-3.5 h-3.5" />
+            )}
+            <span>Mark all as read</span>
+          </button>
+        )}
+      </div>
 
-          return (
-            <div
-              key={item.id}
-              className={`p-4 sm:p-5 rounded-2xl border transition flex items-start gap-4 ${
-                item.unread
-                  ? 'bg-white border-[#00726D]/30 shadow-2xs'
-                  : 'bg-white/80 border-gray-150'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#E8F5F3] text-[#00726D] flex items-center justify-center shrink-0">
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900">{item.title}</span>
-                  <span className="text-[11px] text-gray-400">{item.time}</span>
-                </div>
-                <p className="text-xs text-gray-600 leading-relaxed">{item.desc}</p>
-              </div>
+      {/* Notifications list */}
+      <div className="flex flex-col gap-4 mx-auto max-w-6xl w-full">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-150">
+            <Loader2 className="w-8 h-8 animate-spin text-[#00726D] mb-3" />
+            <p className="text-xs text-gray-500">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-250 text-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-[#f0faf9] flex items-center justify-center text-[#00726D]">
+              <Bell className="w-6 h-6 stroke-[1.8]" />
             </div>
-          )
-        })}
-      </section>
+            <h3 className="text-base font-bold text-gray-800">No notifications yet</h3>
+            <p className="text-xs text-gray-400 max-w-sm">
+              You will receive notifications when your proposals are accepted, messages arrive, or escrow funds are deposited.
+            </p>
+          </div>
+        ) : (
+          notifications.map((item) => {
+            const isUnread = !item.isRead
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleNotificationClick(item)}
+                className={`p-5 flex gap-4 transition-all duration-200 border rounded-2xl cursor-pointer ${
+                  isUnread
+                    ? 'border-[#B0D3D2] bg-[#E6F1F0] shadow-[0_2px_12px_rgba(0,114,109,0.02)] hover:border-[#00726D]/40'
+                    : 'border-gray-150 bg-white shadow-[0_4px_25px_rgba(0,0,0,0.01)] hover:border-gray-300'
+                }`}
+              >
+                {/* Left Icon badge */}
+                {getIcon(item.type)}
+
+                {/* Right content details */}
+                <div className="flex flex-col gap-1.5 text-left flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs sm:text-[18px] font-bold text-black font-secondary leading-snug">
+                      {item.title}
+                    </span>
+                    {isUnread && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00726D] shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-[11px] sm:text-sm text-black font-normal leading-relaxed">
+                    {item.content}
+                  </p>
+                  <span className="text-[10px] sm:text-[12px] text-gray-500 font-normal select-none">
+                    {item.timeFormatted}
+                  </span>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }

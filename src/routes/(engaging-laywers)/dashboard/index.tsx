@@ -4,98 +4,28 @@ import { ArrowRight, Search, ListFilter } from 'lucide-react'
 import Post from '../../../assets/engaging-lawyers/post-job.png'
 import Apply from '../../../assets/engaging-lawyers/apply-job.png'
 
+import { useMyTasks, type TaskItem } from '#/hooks/useTasks'
+import { useEngagingProfile } from '#/hooks/useProfile'
+
 export const Route = createFileRoute('/(engaging-laywers)/dashboard/')({
   component: DashboardIndex,
 })
 
-interface Task {
-  id: string
-  title: string
-  category: string
-  court: string
-  deadline: string
-  budget: string
-  workers: string
-  status: 'Open' | 'In Progress' | 'Awaiting review' | 'Completed'
-}
-
-const DEFAULT_TASKS: Task[] = [
-  {
-    id: '1',
-    title: 'Hold Brief — Land Dispute',
-    category: 'Property Law',
-    court: 'Ikeja High Court',
-    deadline: 'Tomorrow, 9:00am',
-    budget: '₦35,000',
-    workers: '3 Proposals',
-    status: 'Open',
-  },
-  {
-    id: '2',
-    title: 'Draft Statement of Defence',
-    category: 'Commercial Litigation',
-    court: 'Remote',
-    deadline: '3 days',
-    budget: '₦120,000',
-    workers: 'Tunde Okafor',
-    status: 'In Progress',
-  },
-  {
-    id: '3',
-    title: 'Court Appearance — Bail Application',
-    category: 'Criminal Law',
-    court: 'Yaba Magistrate Court',
-    deadline: 'Friday, 8:30am',
-    budget: '₦45,000',
-    workers: 'Chiamaka Bello',
-    status: 'Awaiting review',
-  },
-  {
-    id: '4',
-    title: 'Tenancy Notice — Review',
-    category: 'Criminal Law',
-    court: 'Yaba Magistrate Court',
-    deadline: 'Friday, 8:30am',
-    budget: '₦45,000',
-    workers: 'Funke Adeyemi',
-    status: 'Completed',
-  },
-]
-
 function DashboardIndex() {
   const navigate = useNavigate()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const { data: serverTasks, isLoading } = useMyTasks()
+  const { data: profile } = useEngagingProfile()
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Load from localStorage or set defaults
-  useEffect(() => {
-    const stored = localStorage.getItem('counsel_tasks')
-    if (stored) {
-      setTasks(JSON.parse(stored))
-    } else {
-      localStorage.setItem('counsel_tasks', JSON.stringify(DEFAULT_TASKS))
-      setTasks(DEFAULT_TASKS)
-    }
-  }, [])
-
-  // Clear helper for empty state testing
-  const handleClearTasks = () => {
-    localStorage.setItem('counsel_tasks', JSON.stringify([]))
-    setTasks([])
-  }
-
-  // Reset helper
-  const handleResetTasks = () => {
-    localStorage.setItem('counsel_tasks', JSON.stringify(DEFAULT_TASKS))
-    setTasks(DEFAULT_TASKS)
-  }
+  const tasks = serverTasks && serverTasks.length > 0 ? serverTasks : []
+  const greetingName = profile?.fullName ? profile.fullName.split(' ')[0] : 'Counsel'
 
   // Filter tasks based on query
   const filteredTasks = tasks.filter((t) =>
     t.title.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const getStatusStyle = (status: Task['status']) => {
+  const getStatusStyle = (status: TaskItem['status']) => {
     switch (status) {
       case 'Open':
         return 'bg-blue-50 text-blue-600 border-blue-100'
@@ -116,27 +46,11 @@ function DashboardIndex() {
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex items-center justify-between gap-4 select-none">
         <div className="flex flex-col gap-1">
           <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-black leading-tight">
-            Welcome Oluwarotimi!!
+            Welcome {greetingName}!!
           </h1>
           <p className="font-secondary text-[13px] text-gray-500 font-normal">
             What action are you taking today
           </p>
-          {/* Tester controls inline */}
-          <div className="mt-2 flex items-center gap-3 text-[11px]">
-            <button
-              onClick={handleClearTasks}
-              className="text-red-600 hover:text-red-800 transition cursor-pointer font-medium"
-            >
-              Clear Tasks (Test Empty State)
-            </button>
-            <span className="text-gray-300">|</span>
-            <button
-              onClick={handleResetTasks}
-              className="text-[#00726d] hover:text-[#005c58] transition cursor-pointer font-medium"
-            >
-              Reset Tasks (Test List State)
-            </button>
-          </div>
         </div>
 
         {/* New Task CTA Header Button - visible if tasks exist */}
@@ -151,7 +65,14 @@ function DashboardIndex() {
       </section>
 
       {/* Main Options Area */}
-      {tasks.length === 0 ? (
+      {isLoading ? (
+        <section className="flex-1 w-full px-6 py-12 sm:px-12 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-3 border-[#00726D]/30 border-t-[#00726D] rounded-full animate-spin" />
+            <p className="text-xs text-gray-500 font-secondary">Loading tasks...</p>
+          </div>
+        </section>
+      ) : tasks.length === 0 ? (
         /* Empty state cards layout */
         <section className="flex-1 w-full px-6 py-12 sm:px-12 flex items-center justify-center">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-190 justify-center">
@@ -276,24 +197,26 @@ function DashboardIndex() {
                         key={task.id}
                         className="hover:bg-gray-50/50 transition text-sm font-normal text-[#242424] cursor-pointer"
                         onClick={() => {
+                          const taskId = String(task.id)
                           if (task.status === 'Open') {
                             navigate({
-                              to: `/dashboard/review-proposals/${task.id}`,
+                              to: '/dashboard/review-proposals/$taskId',
+                              params: { taskId },
                             })
                           } else if (task.status === 'In Progress') {
                             navigate({
-                              to: `/dashboard/messages/$taskId`,
-                              params: { taskId: task.id },
+                              to: '/dashboard/messages/$taskId',
+                              params: { taskId },
                             })
                           } else if (task.status === 'Awaiting review') {
                             navigate({
-                              to: `/dashboard/review-work/$taskId`,
-                              params: { taskId: task.id },
+                              to: '/dashboard/review-work/$taskId',
+                              params: { taskId },
                             })
                           } else {
                             navigate({
-                              to: `/dashboard/your-rating/$taskId`,
-                              params: { taskId: task.id },
+                              to: '/dashboard/your-rating/$taskId',
+                              params: { taskId },
                             })
                           }
                         }}

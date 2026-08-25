@@ -1,33 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Search, ListFilter } from 'lucide-react'
+import { useTasks, type TaskItem } from '#/hooks/useTasks'
 
 export const Route = createFileRoute('/(engaging-laywers)/dashboard/payments')({
   component: PaymentsPage,
 })
 
-interface Task {
-  id: string
-  title: string
-  category: string
-  court: string
-  deadline: string
-  budget: string
-  workers: string
-  status: 'Open' | 'In Progress' | 'Awaiting review' | 'Completed'
-}
-
 function PaymentsPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
+  const { data: serverTasks } = useTasks()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([])
 
-  useEffect(() => {
-    const stored = localStorage.getItem('counsel_tasks')
-    if (stored) {
-      setTasks(JSON.parse(stored))
-    }
-  }, [])
+  const tasks: TaskItem[] = serverTasks || []
 
   // Only display tasks that have been funded (i.e. not Open)
   const fundedTasks = tasks.filter((t) => t.status !== 'Open')
@@ -53,7 +38,7 @@ function PaymentsPage() {
     }
   }
 
-  const getEscrowStatus = (status: Task['status']) => {
+  const getEscrowStatus = (status: TaskItem['status']) => {
     if (status === 'Completed') {
       return {
         label: 'Released',

@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
-  Search,
-  MapPin,
-  Clock,
-  Briefcase,
   CheckCircle2,
-  Send,
-  SlidersHorizontal,
   Bold,
   Italic,
   List,
@@ -15,8 +9,14 @@ import {
   Link2,
   RotateCcw,
   RotateCw,
-  Sparkles,
+  Send,
+  X,
 } from 'lucide-react'
+import { useTasks } from '#/hooks/useTasks'
+import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
+import { useAssistingProfile } from '#/hooks/useProfile'
+import { useRegistrationStore } from '#/store/useRegistrationStore'
+import { formatCurrency } from '#/lib/formatters'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/',
@@ -27,107 +27,26 @@ export const Route = createFileRoute(
 interface AvailableTask {
   id: string
   title: string
-  clientName: string
-  clientFirm: string
-  category: string
+  postedBy: string
   court: string
-  state: string
   deadline: string
-  budget: string
-  proposalsCount: number
+  practiceArea: string
+  fee: string
   description: string
-  postedTime: string
-  verified: boolean
+  tags: string[]
 }
 
-const AVAILABLE_TASKS: AvailableTask[] = [
-  {
-    id: 't-1',
-    title: 'Hold Brief — Motion for Injunction Hearing',
-    clientName: 'Adeola & Partners LP',
-    clientFirm: 'Verified Law Firm',
-    category: 'Litigation & Dispute Resolution',
-    court: 'Ikeja High Court (Court 4)',
-    state: 'Lagos',
-    deadline: 'Tomorrow, 9:00 AM',
-    budget: '₦40,000',
-    proposalsCount: 4,
-    description:
-      'Looking for an experienced counsel to hold brief and move an unopposed motion for interlocutory injunction in Suit No. ID/4521/2026. Briefing notes and bundle are ready.',
-    postedTime: '2 hours ago',
-    verified: true,
-  },
-  {
-    id: 't-2',
-    title: 'Draft Statement of Defence and Counterclaim',
-    clientName: 'Kazeem Lawal & Co.',
-    clientFirm: 'Corporate Practice',
-    category: 'Commercial Law',
-    court: 'Federal High Court, Ikoyi',
-    state: 'Lagos / Remote',
-    deadline: 'In 3 days',
-    budget: '₦120,000',
-    proposalsCount: 6,
-    description:
-      'Need an assisting lawyer to draft a comprehensive Statement of Defence and Counterclaim in a breach of commercial contract matter. All documentary exhibits available.',
-    postedTime: '4 hours ago',
-    verified: true,
-  },
-  {
-    id: 't-3',
-    title: 'Court Appearance — Arraignment & Bail Application',
-    clientName: 'Oluwarotimi Chambers',
-    clientFirm: 'Criminal Defence Practice',
-    category: 'Criminal Law',
-    court: 'Yaba Magistrate Court (Court 2)',
-    state: 'Lagos',
-    deadline: 'Friday, 8:30 AM',
-    budget: '₦50,000',
-    proposalsCount: 2,
-    description:
-      'Counsel needed for bail representation and perfection assistance. Charge sheet and affidavit in support of bail prepared.',
-    postedTime: '5 hours ago',
-    verified: true,
-  },
-  {
-    id: 't-4',
-    title: 'Title Search & Due Diligence at Land Registry',
-    clientName: 'Prime Crest Legal',
-    clientFirm: 'Real Estate Practice',
-    category: 'Property Law',
-    court: 'Lagos State Lands Bureau, Alausa',
-    state: 'Lagos',
-    deadline: 'Next Monday',
-    budget: '₦65,000',
-    proposalsCount: 5,
-    description:
-      'Conduct official title search, obtain certified CTC of search report, and verify encumbrances at the land registry.',
-    postedTime: '1 day ago',
-    verified: true,
-  },
-  {
-    id: 't-5',
-    title: 'CAC Post-Incorporation Filing & Director Status Update',
-    clientName: 'Apex Advisory Partners',
-    clientFirm: 'Commercial Counsel',
-    category: 'Corporate Practice',
-    court: 'CAC Portal / Abuja',
-    state: 'Abuja / Remote',
-    deadline: 'In 5 days',
-    budget: '₦85,000',
-    proposalsCount: 3,
-    description:
-      'Accredited CAC agent needed to assist in filing changes in board of directors and annual returns reconciliation.',
-    postedTime: '1 day ago',
-    verified: true,
-  },
-]
+const BROWSE_TASKS: AvailableTask[] = []
 
 function AssistingDashboardIndex() {
-  // Check if assisting lawyer has completed profile
-  const [isProfileFilled, setIsProfileFilled] = useState<boolean>(false)
+  const navigate = useNavigate()
+  // Check if assisting lawyer has completed profile (defaults to true for browse view, or toggled)
+  const [isProfileFilled, setIsProfileFilled] = useState<boolean>(true)
 
-  // Profile Form States
+  // Filter toolbar state
+  const [activeFilter, setActiveFilter] = useState<string>('Matching My Practice')
+
+  // Profile Form States (for onboarding mode)
   const [practiceAreas, setPracticeAreas] = useState<string[]>([
     'Property Law',
     'Commercial Litigation',
@@ -149,22 +68,36 @@ function AssistingDashboardIndex() {
     'Called to bar in 2018. Focused on property and land dispute matters across Lagos State courts. Based five minutes from Ikeja High Court, available for short-notice hearings most weekdays.',
   )
 
-  // Browse Feed States
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [appliedTasks, setAppliedTasks] = useState<string[]>([])
-  const [applyingTask, setApplyingTask] = useState<AvailableTask | null>(null)
+  // Selected Task Modal state
+  const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null)
   const [proposalBid, setProposalBid] = useState('')
   const [proposalCover, setProposalCover] = useState('')
   const [showSuccessToast, setShowSuccessToast] = useState(false)
 
-  // Load profile status from localStorage
+  const { data: profile } = useAssistingProfile()
+  const regFullName = useRegistrationStore((state) => state.fullName)
+  const { data: serverTasks } = useTasks()
+  const { data: myProposals } = useMyProposals()
+  const { mutate: createProposal } = useCreateProposal(selectedTask ? selectedTask.id : '')
+
+  const lawyerFullName = profile?.fullName?.trim() || regFullName?.trim() || 'Funke Akindele'
+  const initials = lawyerFullName
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'FA'
+
+  const appliedTaskIds = (myProposals || []).map((p) => String(p.taskId))
+
+  // Check localStorage status if set
   useEffect(() => {
     const storedStatus = localStorage.getItem('counsel_assisting_profile_filled')
-    if (storedStatus === 'true') {
-      setIsProfileFilled(true)
-    } else {
+    if (storedStatus === 'false') {
       setIsProfileFilled(false)
+    } else {
+      setIsProfileFilled(true)
     }
   }, [])
 
@@ -196,6 +129,32 @@ function AssistingDashboardIndex() {
     setIsProfileFilled(false)
   }
 
+  const handleOpenTask = (task: AvailableTask) => {
+    setSelectedTask(task)
+    setProposalBid(task.fee)
+    setProposalCover('')
+  }
+
+  const handleSubmitProposal = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTask) return
+
+    createProposal(
+      {
+        quotedFee: proposalBid,
+        experienceText: proposalCover,
+        isAvailable: true,
+      },
+      {
+        onSuccess: () => {
+          setSelectedTask(null)
+          setShowSuccessToast(true)
+          setTimeout(() => setShowSuccessToast(false), 4000)
+        },
+      },
+    )
+  }
+
   const practiceAreaOptions = [
     'Property Law',
     'Commercial Litigation',
@@ -222,127 +181,226 @@ function AssistingDashboardIndex() {
     'Sunday',
   ]
 
-  const categories = [
-    'All',
-    'Litigation',
-    'Commercial Law',
-    'Criminal Law',
-    'Property Law',
-    'Corporate Practice',
+  const filterButtons = [
+    'Matching My Practice',
+    'Practice Area',
+    'Court Location',
+    'Deadline',
+    'Budget',
   ]
 
-  const filteredTasks = AVAILABLE_TASKS.filter((task) => {
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.court.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const allAvailableTasks: AvailableTask[] =
+    serverTasks && serverTasks.length > 0
+      ? serverTasks
+        .filter((t) => {
+          if (profile?.email && t.postedByEmail && t.postedByEmail.toLowerCase() === profile.email.toLowerCase()) {
+            return false
+          }
+          if (profile?.fullName && t.postedBy && t.postedBy.toLowerCase() === profile.fullName.toLowerCase()) {
+            return false
+          }
+          return true
+        })
+        .map((t) => ({
+          id: t.id.toString(),
+          title: t.title,
+          postedBy: t.postedBy || 'CounselTask Member',
+          court: t.court || t.courtLocation || 'Remote',
+          deadline: t.deadline,
+          practiceArea: t.practiceArea || t.category || 'General Practice',
+          fee: formatCurrency(t.budget),
+          description: t.description || '',
+          tags: ['Matches your practice'],
+        }))
+      : BROWSE_TASKS
 
-    const matchesCategory =
-      selectedCategory === 'All' ||
-      task.category.toLowerCase().includes(selectedCategory.toLowerCase())
-
-    return matchesSearch && matchesCategory
+  const filteredTasks = allAvailableTasks.filter((task) => {
+    if (activeFilter === 'Matching My Practice') return true
+    if (activeFilter === 'Practice Area') return task.practiceArea === 'Property Law'
+    if (activeFilter === 'Court Location') return task.court.includes('Ikeja')
+    return true
   })
 
-  const handleApplyClick = (task: AvailableTask) => {
-    setApplyingTask(task)
-    setProposalBid(task.budget)
-    setProposalCover('')
-  }
-
-  const handleSendProposal = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!applyingTask) return
-
-    setAppliedTasks((prev) => [...prev, applyingTask.id])
-    setApplyingTask(null)
-    setShowSuccessToast(true)
-    setTimeout(() => setShowSuccessToast(false), 4000)
-  }
-
   return (
-    <div className="flex flex-col w-full min-h-full pb-16">
-      {/* Top Welcome Banner */}
+    <div className="flex flex-col w-full min-h-full pb-20 font-secondary">
+      {/* Welcome Banner Header */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
         <div className="flex flex-col gap-1">
-          <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-[#00726D] leading-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
             Welcome Oluwarotimi!!
           </h1>
-          <p className="font-secondary text-[13px] text-gray-500 font-normal">
+          <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
             What action are you taking today
           </p>
 
-          {/* Tester controls to easily test both states */}
+          {/* Inline switcher to test both views */}
           <div className="mt-2 flex items-center gap-3 text-[11px]">
             <button
-              onClick={handleResetProfile}
-              className={`transition cursor-pointer font-medium ${
-                !isProfileFilled
+              onClick={handleSaveProfile}
+              className={`transition cursor-pointer font-medium ${isProfileFilled
                   ? 'text-[#00726D] font-bold underline'
                   : 'text-gray-500 hover:text-gray-800'
-              }`}
+                }`}
             >
-              Test Unfilled Profile (Build Profile UI)
+              Browse Available Tasks UI
             </button>
             <span className="text-gray-300">|</span>
             <button
-              onClick={handleSaveProfile}
-              className={`transition cursor-pointer font-medium ${
-                isProfileFilled
+              onClick={handleResetProfile}
+              className={`transition cursor-pointer font-medium ${!isProfileFilled
                   ? 'text-[#00726D] font-bold underline'
                   : 'text-gray-500 hover:text-gray-800'
-              }`}
+                }`}
             >
-              Test Completed Profile (Browse Tasks UI)
+              Build Your Profile (Onboarding UI)
             </button>
           </div>
         </div>
-
-        {isProfileFilled && (
-          <div className="flex items-center gap-3">
-            <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
-              <span className="text-[11px] text-gray-400 font-medium uppercase">
-                Active Briefs
-              </span>
-              <span className="text-base font-bold text-gray-900">
-                14 Available
-              </span>
-            </div>
-            <div className="bg-white border border-gray-200/80 rounded-xl px-4 py-2 flex flex-col shadow-2xs">
-              <span className="text-[11px] text-gray-400 font-medium uppercase">
-                My Proposals
-              </span>
-              <span className="text-base font-bold text-[#00726D]">
-                {appliedTasks.length} Submitted
-              </span>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* ========================================================================= */}
-      {/* 1. UNFILLED PROFILE ONBOARDING VIEW (Exact UI from user design)           */}
+      {/* 1. BROWSE AVAILABLE TASKS VIEW (Matching Attached Design)                 */}
       {/* ========================================================================= */}
-      {!isProfileFilled ? (
+      {isProfileFilled ? (
+        <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
+          {/* Title and description */}
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-2xl sm:text-[28px] font-semibold text-[#041626] tracking-tight">
+              Browse available tasks
+            </h2>
+            <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal max-w-3xl">
+              Filtered to match your practice areas and locations. Turn on alerts to get
+              notified the moment a new one is posted.
+            </p>
+          </div>
+
+          {/* Filter Pills Toolbar */}
+          <div className="w-full bg-white border border-gray-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex items-center gap-2.5 overflow-x-auto">
+            {filterButtons.map((btn) => {
+              const isActive = activeFilter === btn
+              return (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => setActiveFilter(btn)}
+                  className={`h-9 px-4.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none ${isActive
+                      ? 'bg-[#041626] text-white shadow-xs'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                    }`}
+                >
+                  {btn}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Task Cards List */}
+          <div className="flex flex-col gap-5">
+            {filteredTasks.map((task) => {
+              const isApplied = appliedTaskIds.includes(task.id)
+
+              return (
+                <div
+                  key={task.id}
+                  onClick={() =>
+                    navigate({
+                      to: '/assisting-dashboard/task/$taskId',
+                      params: { taskId: task.id },
+                    })
+                  }
+                  className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col justify-between gap-4 cursor-pointer"
+                >
+                  {/* Top Row: Title & Fee */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div className="flex flex-col">
+                      <h3 className="text-xl sm:text-[18px] font-medium text-black leading-tight font-primary">
+                        {task.title}
+                      </h3>
+                      <div className="text-xs sm:text-[13px] text-black font-normal mt-1 flex items-center gap-1.5 flex-wrap">
+                        <span>{task.court}</span>
+                        <span>•</span>
+                        <span>{task.deadline}</span>
+                        <span>•</span>
+                        <span>{task.practiceArea}</span>
+                      </div>
+                    </div>
+
+                    {/* Fee Tag */}
+                    <div className="flex flex-col sm:items-end shrink-0">
+                      <span className="text-2xl sm:text-[20px] font-medium text-[#00726D] leading-tight font-primary">
+                        {task.fee}
+                      </span>
+                      <span className="text-[11px] text-gray-400 font-normal mt-0.5">
+                        Quoted Fee
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-xs sm:text-[13.5px] text-black leading-relaxed font-normal">
+                    {task.description}
+                  </p>
+
+                  {/* Footer Row: Tags & View Task Action */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                    {/* Tags */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {task.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-[#f0f2f4] text-gray-600 text-[11px] px-3.5 py-1 rounded-full font-medium select-none"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex items-center justify-end">
+                      {isApplied ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Proposal Submitted
+                        </span>
+                      ) : (
+                        <Link
+                          to="/assisting-dashboard/task/$taskId"
+                          params={{ taskId: task.id }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-9.5 px-5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 text-gray-800 text-xs font-medium shadow-2xs transition cursor-pointer select-none active:scale-[0.98] inline-flex items-center justify-center no-underline"
+                        >
+                          View Task
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ) : (
+        /* ========================================================================= */
+        /* 2. UNFILLED PROFILE ONBOARDING VIEW                                       */
+        /* ========================================================================= */
         <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
           {/* Heading */}
           <div className="flex flex-col gap-1.5">
             <h2 className="text-2xl sm:text-[28px] font-bold text-gray-900 tracking-tight">
               Build your profile
             </h2>
-            <p className="text-xs sm:text-sm text-gray-500 font-normal max-w-2xl">
-              This is what engaging lawyers see when reviewing your proposals.
-              The more complete it is, the better your matches.
+            <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal max-w-3xl">
+              Tell other lawyers your practice areas, experience, and the courts you cover so
+              they can find and hire you for tasks.
             </p>
           </div>
 
-          {/* Main Form Container Card */}
-          <div className="bg-white border border-gray-150 rounded-3xl p-6 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col gap-8 max-w-4xl">
+          <div className="bg-white border border-gray-150 rounded-2xl p-6 sm:p-8 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col gap-8">
             {/* Section A: Practice Areas */}
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-semibold text-gray-900">
-                Practice Areas (select all that apply)
-              </label>
+              <span className="text-xs sm:text-sm font-bold text-gray-900">
+                Practice Area <span className="text-red-500">*</span>
+              </span>
               <div className="flex flex-wrap gap-2.5">
                 {practiceAreaOptions.map((area) => {
                   const isSelected = practiceAreas.includes(area)
@@ -351,24 +409,24 @@ function AssistingDashboardIndex() {
                       key={area}
                       type="button"
                       onClick={() => togglePracticeArea(area)}
-                      className={`h-9.5 px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
-                        isSelected
+                      className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
                           ? 'bg-[#041626] text-white shadow-xs'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
-                      }`}
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        }`}
                     >
-                      {area}
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      <span>{area}</span>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Section B: Courts / Locations Covered */}
+            {/* Section B: Courts Covered */}
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-semibold text-gray-900">
-                Courts / Locations Covered
-              </label>
+              <span className="text-xs sm:text-sm font-bold text-gray-900">
+                Courts Covered <span className="text-red-500">*</span>
+              </span>
               <div className="flex flex-wrap gap-2.5">
                 {courtOptions.map((court) => {
                   const isSelected = courtsCovered.includes(court)
@@ -377,13 +435,13 @@ function AssistingDashboardIndex() {
                       key={court}
                       type="button"
                       onClick={() => toggleCourt(court)}
-                      className={`h-9.5 px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
-                        isSelected
+                      className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
                           ? 'bg-[#041626] text-white shadow-xs'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
-                      }`}
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        }`}
                     >
-                      {court}
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      <span>{court}</span>
                     </button>
                   )
                 })}
@@ -392,10 +450,10 @@ function AssistingDashboardIndex() {
 
             {/* Section C: Weekly Availability */}
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-semibold text-gray-900">
-                Weekly Availability
-              </label>
-              <div className="flex flex-wrap gap-2">
+              <span className="text-xs sm:text-sm font-bold text-gray-900">
+                Weekly Availability <span className="text-red-500">*</span>
+              </span>
+              <div className="flex flex-wrap gap-2.5">
                 {daysOfWeek.map((day) => {
                   const isSelected = weeklyAvailability.includes(day)
                   return (
@@ -403,59 +461,56 @@ function AssistingDashboardIndex() {
                       key={day}
                       type="button"
                       onClick={() => toggleDay(day)}
-                      className={`h-9 px-4 rounded-lg text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${
-                        isSelected
-                          ? 'bg-[#E8F5F3] border border-[#86D2CA] text-[#00726D] font-semibold'
-                          : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50/60'
-                      }`}
+                      className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
+                          ? 'bg-[#041626] text-white shadow-xs'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        }`}
                     >
-                      {day}
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      <span>{day}</span>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Section D: Years of Practice & Call to Bar Date (2 columns) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Section D: Years of Practice & Call to Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-900">
+                <label className="text-xs sm:text-sm font-bold text-gray-900">
                   Years of Practice <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={yearsOfPractice}
                   onChange={(e) => setYearsOfPractice(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
                   placeholder="e.g. 9"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-gray-900 focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-900">
-                  Call to Bar Date <span className="text-red-500">*</span>
+                <label className="text-xs sm:text-sm font-bold text-gray-900">
+                  Date of Call to Bar <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={callToBarDate}
                   onChange={(e) => setCallToBarDate(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
                   placeholder="DD/MM/YYYY"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-gray-900 focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
                 />
               </div>
             </div>
 
-            {/* Section E: Short Bio (with Rich Text formatting toolbar) */}
+            {/* Section E: Bio / Summary */}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-900">
-                Short Bio (visible on your profile){' '}
-                <span className="text-red-500">*</span>
+              <label className="text-xs sm:text-sm font-bold text-gray-900">
+                Bio / Summary <span className="text-red-500">*</span>
               </label>
-
-              {/* Rich text container */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#00726D] focus-within:ring-2 focus-within:ring-[#00726D]/10 transition shadow-2xs">
-                {/* Toolbar */}
-                <div className="p-2.5 bg-white border-b border-gray-150 flex items-center gap-1 text-gray-600 select-none">
+              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs focus-within:border-[#00726D] focus-within:ring-2 focus-within:ring-[#00726D]/10 transition">
+                {/* Rich Editor Toolbar Mock */}
+                <div className="bg-[#f9fafb] border-b border-gray-200 p-2 flex items-center gap-1">
                   <button
                     type="button"
                     className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
@@ -529,16 +584,16 @@ function AssistingDashboardIndex() {
 
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-[#00726D] text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 select-none">
-                  FA
+                  {initials}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-base font-bold text-gray-900 leading-tight">
-                    Funke Adeyemi
+                    {lawyerFullName}
                   </span>
                   <span className="text-xs text-gray-600 mt-0.5">
                     {practiceAreas.slice(0, 2).join(', ') || 'General Practice'} •{' '}
                     {yearsOfPractice || '8'} years practice •{' '}
-                    {courtsCovered[0]?.replace(' High Court', '') || 'Lagos'}, Nigeria
+                    {courtsCovered[0]?.replace(' High Court', '') || 'Ikeja'}, Lagos
                   </span>
                 </div>
               </div>
@@ -563,191 +618,47 @@ function AssistingDashboardIndex() {
             </div>
           </div>
         </section>
-      ) : (
-        /* ========================================================================= */
-        /* 2. COMPLETED PROFILE VIEW: ACTIVE BROWSE TASKS FEED                      */
-        /* ========================================================================= */
-        <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
-          {/* Search & Categories Bar */}
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-              {/* Search Input */}
-              <div className="relative flex-1 max-w-md">
-                <span className="absolute inset-y-0 left-3.5 flex items-center text-gray-400 pointer-events-none">
-                  <Search className="w-4.5 h-4.5" />
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search brief by court, practice area, or keyword..."
-                  className="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-[#242424] placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs"
-                />
-              </div>
-
-              {/* Filter buttons */}
-              <div className="flex items-center gap-2">
-                <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
-                  <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                  <span>Jurisdiction: Lagos</span>
-                </button>
-                <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer shadow-2xs">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
-                  <span>Filter Budget</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Category Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                    selectedCategory === cat
-                      ? 'bg-[#00726D] text-white shadow-xs'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Task Cards List */}
-          <div className="flex flex-col gap-4">
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => {
-                const hasApplied = appliedTasks.includes(task.id)
-
-                return (
-                  <div
-                    key={task.id}
-                    className="bg-white border border-gray-150 rounded-2xl p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.02)] hover:border-[#00726D]/30 transition-all flex flex-col gap-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                            {task.category}
-                          </span>
-                          <span className="text-[11px] text-gray-400 font-normal">
-                            Posted {task.postedTime}
-                          </span>
-                        </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
-                          {task.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                          <span className="font-medium text-gray-700">
-                            {task.clientName}
-                          </span>
-                          <span>•</span>
-                          <span>{task.clientFirm}</span>
-                        </div>
-                      </div>
-
-                      {/* Budget & Apply Action */}
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0">
-                        <div className="flex flex-col sm:text-right">
-                          <span className="text-[11px] text-gray-400 font-medium">
-                            Task Fee
-                          </span>
-                          <span className="text-lg font-bold text-[#00726D]">
-                            {task.budget}
-                          </span>
-                        </div>
-
-                        {hasApplied ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-3.5 py-1.5 rounded-lg">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Proposal Sent
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleApplyClick(task)}
-                            className="h-9 px-4 rounded-lg bg-[#00726D] text-white text-xs font-medium hover:bg-[#005c58] transition active:scale-[0.98] cursor-pointer shadow-2xs"
-                          >
-                            Submit Proposal
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-gray-600 leading-relaxed font-normal">
-                      {task.description}
-                    </p>
-
-                    {/* Task Meta Footer */}
-                    <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                          <span>{task.court}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-gray-400" />
-                          <span>{task.deadline}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 text-gray-400 text-[11px]">
-                        <Briefcase className="w-3.5 h-3.5" />
-                        <span>
-                          {task.proposalsCount} lawyers submitted proposals
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
-            ) : (
-              <div className="bg-white border border-gray-150 rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-3">
-                <Briefcase className="w-10 h-10 text-gray-300" />
-                <h3 className="text-base font-semibold text-gray-800">
-                  No briefs found
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 max-w-sm">
-                  No active tasks match your selected filter. Try adjusting your
-                  search or category.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
       )}
 
-      {/* Submit Proposal Modal */}
-      {applyingTask && (
+      {/* View Task / Submit Proposal Modal */}
+      {selectedTask && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden border border-gray-150 animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-gray-100 flex items-start justify-between">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-semibold text-[#00726D] uppercase tracking-wider">
-                  Submit Proposal
+                  Task Brief
                 </span>
-                <h3 className="text-base font-bold text-gray-900">
-                  {applyingTask.title}
+                <h3 className="text-lg font-bold text-gray-900">
+                  {selectedTask.title}
                 </h3>
-                <span className="text-xs text-gray-500">
-                  {applyingTask.court} • Client budget: {applyingTask.budget}
-                </span>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                  <span>{selectedTask.court}</span>
+                  <span>•</span>
+                  <span>{selectedTask.deadline}</span>
+                  <span>•</span>
+                  <span className="font-bold text-[#00726D]">{selectedTask.fee}</span>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => setApplyingTask(null)}
+                onClick={() => setSelectedTask(null)}
                 className="text-gray-400 hover:text-gray-600 text-lg cursor-pointer p-1"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSendProposal} className="p-6 flex flex-col gap-4">
+            <form onSubmit={handleSubmitProposal} className="p-6 flex flex-col gap-4">
+              <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-150">
+                <span className="text-[11px] font-semibold text-gray-500 uppercase block mb-1">
+                  Brief Overview
+                </span>
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  {selectedTask.description}
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   Your Proposed Fee (₦)
@@ -757,21 +668,21 @@ function AssistingDashboardIndex() {
                   required
                   value={proposalBid}
                   onChange={(e) => setProposalBid(e.target.value)}
-                  placeholder="e.g. ₦40,000"
+                  placeholder="e.g. ₦35,000"
                   className="w-full h-10 px-3.5 rounded-xl border border-gray-200 text-sm focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Cover Note / Strategy for the Engaging Lawyer
+                  Proposal Cover Note to {selectedTask.postedBy}
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   required
                   value={proposalCover}
                   onChange={(e) => setProposalCover(e.target.value)}
-                  placeholder="Introduce your relevant experience in this court/matter, availability for the date, and any specific notes..."
+                  placeholder="State your availability, experience with this court/brief, and how you will handle it..."
                   className="w-full p-3.5 rounded-xl border border-gray-200 text-sm focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none resize-none"
                 />
               </div>
@@ -779,7 +690,7 @@ function AssistingDashboardIndex() {
               <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setApplyingTask(null)}
+                  onClick={() => setSelectedTask(null)}
                   className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer"
                 >
                   Cancel
@@ -789,7 +700,7 @@ function AssistingDashboardIndex() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00726D] text-white text-xs font-semibold hover:bg-[#005c58] transition cursor-pointer shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Proposal</span>
+                  <span>Submit Proposal</span>
                 </button>
               </div>
             </form>
@@ -804,7 +715,7 @@ function AssistingDashboardIndex() {
           <div className="flex flex-col">
             <span className="text-xs font-semibold">Proposal Submitted!</span>
             <span className="text-[11px] text-gray-300">
-              The engaging lawyer will review your application and respond shortly.
+              The engaging lawyer will review your proposal and respond.
             </span>
           </div>
         </div>

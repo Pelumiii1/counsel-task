@@ -78,6 +78,7 @@ interface ProfessionalCredentialsFormProps {
     callToBarDate: string
     enrolmentNumber: string
   }
+  isLoading?: boolean
   onChange: (key: 'callToBarDate' | 'enrolmentNumber', val: string) => void
   practisingFeeReceipt: File | null
   setPractisingFeeReceipt: (file: File | null) => void
@@ -91,6 +92,7 @@ interface ProfessionalCredentialsFormProps {
 
 export function ProfessionalCredentialsForm({
   values,
+  isLoading = false,
   onChange,
   practisingFeeReceipt,
   setPractisingFeeReceipt,
@@ -169,12 +171,12 @@ export function ProfessionalCredentialsForm({
           <label className={labelClass}>
             <span>Call to Bar Date {requiredMark}</span>
             <input
-              type="text"
+              type="date"
               value={callToBarDate}
               onChange={(event) =>
                 onChange('callToBarDate', event.target.value)
               }
-              placeholder="dd/mm/yyyy"
+              max={new Date().toISOString().split('T')[0]}
               className={inputClass}
             />
           </label>
@@ -235,9 +237,10 @@ export function ProfessionalCredentialsForm({
         </button>
         <button
           type="submit"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer"
+          disabled={isLoading}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <span>Continue</span>
+          <span>{isLoading ? 'Saving Credentials...' : 'Continue'}</span>
           <ChevronRight className="h-4 w-4 stroke-2" aria-hidden />
         </button>
       </div>

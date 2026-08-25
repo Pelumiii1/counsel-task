@@ -1,18 +1,66 @@
+import { useEffect, useRef } from 'react'
 import {
   createFileRoute,
   Outlet,
   Link,
   useLocation,
+  redirect,
+  useNavigate,
 } from '@tanstack/react-router'
-import { Bell, ChevronsUpDown } from 'lucide-react'
+import { getAuthPayload, requireAuthGuard, storeSessionToken } from '#/lib/authGuard'
+import { Bell, ChevronsUpDown, LogOut } from 'lucide-react'
+import { toast } from 'sonner'
 import LogoWhite from '#/assets/logo-white.png'
+import { useEngagingProfile } from '#/hooks/useProfile'
+import { useConversations } from '#/hooks/useMessages'
+import { useNotifications } from '#/hooks/useNotifications'
 
 export const Route = createFileRoute('/(engaging-laywers)/dashboard')({
+  beforeLoad: () => {
+    requireAuthGuard()
+  },
   component: DashboardLayout,
 })
 
 function DashboardLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { data: profile } = useEngagingProfile()
+
+  const handleLogout = () => {
+    storeSessionToken(null)
+    navigate({ to: '/auth/login' })
+  }
+  const { data: conversations } = useConversations('engaging')
+  const { data: notifications } = useNotifications('engaging')
+  const prevUnreadNotifsRef = useRef<number | null>(null)
+
+  const unreadMessagesCount = (conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+  const unreadNotificationsCount = (notifications || []).filter((n) => !n.isRead).length
+  const hasUnreadNotifications = unreadNotificationsCount > 0 || unreadMessagesCount > 0
+
+  useEffect(() => {
+    if (prevUnreadNotifsRef.current !== null && unreadNotificationsCount > prevUnreadNotifsRef.current) {
+      const latestNotif = (notifications || []).find((n) => !n.isRead)
+      if (latestNotif) {
+        toast.info(latestNotif.title, {
+          description: latestNotif.content,
+        })
+      }
+    }
+    prevUnreadNotifsRef.current = unreadNotificationsCount
+  }, [unreadNotificationsCount, notifications])
+
+  const fullName = profile?.fullName || 'Funke Adeyemi'
+  const roleName = 'Engaging Lawyer'
+  const initials =
+    fullName
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase() || 'FA'
 
   // Helper check for active menu link styling
   const isActive = (path: string) => {
@@ -21,9 +69,9 @@ function DashboardLayout() {
 
   const menuItems = [
     { label: 'Task', path: '/dashboard' },
-    { label: 'Messages', path: '/dashboard/messages' },
+    { label: 'Messages', path: '/dashboard/messages', badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
     { label: 'Payments', path: '/dashboard/payments' },
-    { label: 'Notification', path: '/dashboard/notifications' },
+    { label: 'Notification', path: '/dashboard/notifications', badge: unreadNotificationsCount > 0 ? unreadNotificationsCount : undefined, hasDot: unreadNotificationsCount > 0 },
     { label: 'Ratings', path: '/dashboard/ratings' },
     { label: 'Account Settings', path: '/dashboard/settings' },
   ]
@@ -56,21 +104,28 @@ function DashboardLayout() {
               const active =
                 item.path === '/dashboard'
                   ? location.pathname === '/dashboard' ||
-                    location.pathname === '/dashboard/' ||
-                    location.pathname === '/dashboard/post-job'
+                  location.pathname === '/dashboard/' ||
+                  location.pathname === '/dashboard/post-job'
                   : isActive(item.path)
 
               return (
                 <Link
                   key={item.label}
                   to={item.path}
-                  className={`flex items-center w-full h-10 px-3 rounded-lg text-sm font-medium transition duration-100 cursor-pointer ${
-                    active
-                      ? 'text-white font-semibold'
-                      : 'text-gray-400 hover:bg-white'
-                  }`}
+                  className={`flex items-center justify-between w-full h-10 px-3 rounded-lg text-sm font-medium transition duration-100 cursor-pointer ${active
+                    ? 'text-white font-semibold bg-white/10'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold rounded-full bg-[#00726D] text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.hasDot && !item.badge && (
+                    <span className="w-2 h-2 rounded-full bg-[#e05e5e]" />
+                  )}
                 </Link>
               )
             })}
@@ -78,26 +133,25 @@ function DashboardLayout() {
         </div>
 
         {/* Bottom Profile Footer Section */}
-        <div className="p-4 border-t border-[#0d2235] flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer">
+        <Link
+          to="/dashboard/settings"
+          className="p-4 border-t border-[#0d2235] flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer no-underline text-inherit"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#ef4444]/90 flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80&h=80"
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+            <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
+              {initials}
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xs font-semibold leading-tight text-white">
-                Oluwarotimi
+              <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
+                {fullName}
               </span>
               <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                Engaging Lawyer
+                {roleName}
               </span>
             </div>
           </div>
           <ChevronsUpDown className="w-4 h-4 text-gray-400" />
-        </div>
+        </Link>
       </aside>
 
       {/* Right Side: Navbar + Viewport Scroll Area */}
@@ -115,23 +169,34 @@ function DashboardLayout() {
 
             <Link
               to="/dashboard/notifications"
-              className="text-gray-500 hover:text-gray-700 transition relative focus:outline-none cursor-pointer p-1"
+              className="text-gray-500 hover:text-gray-700 transition relative focus:outline-none cursor-pointer p-1.5 rounded-lg hover:bg-gray-100"
               aria-label="Notifications"
             >
               <Bell className="w-5.5 h-5.5 stroke-[1.8]" />
+              {hasUnreadNotifications && (
+                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 ring-2 ring-white" />
+                </span>
+              )}
             </Link>
 
             <Link
               to="/dashboard/settings"
-              className="w-10 h-10 rounded-full border border-gray-100 overflow-hidden cursor-pointer block shrink-0"
+              className="w-10 h-10 rounded-full bg-[#00726d]/10 text-[#00726d] border border-[#00726d]/20 flex items-center justify-center font-bold text-xs cursor-pointer select-none hover:bg-[#00726d]/20 transition"
               aria-label="Account Settings"
             >
-              <img
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120&h=120"
-                alt="Profile Avatar"
-                className="w-full h-full object-cover"
-              />
+              {initials}
             </Link>
+
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              aria-label="Sign out"
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-200"
+            >
+              <LogOut className="w-4.5 h-4.5 stroke-[1.8]" />
+            </button>
           </div>
         </header>
 

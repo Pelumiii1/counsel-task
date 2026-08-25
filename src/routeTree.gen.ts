@@ -9,9 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as adminAdminDashboardRouteImport } from './routes/(admin)/admin-dashboard'
 import { Route as assistingLawyersAssistingDashboardRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard'
 import { Route as engagingLaywersDashboardRouteImport } from './routes/(engaging-laywers)/dashboard'
 import { Route as landingpageIndexRouteImport } from './routes/(landingpage)/index'
+import { Route as adminAdminDashboardIndexRouteImport } from './routes/(admin)/admin-dashboard/index'
+import { Route as adminAdminDashboardAnnouncementsRouteImport } from './routes/(admin)/admin-dashboard/announcements'
+import { Route as adminAdminDashboardFinanceRouteImport } from './routes/(admin)/admin-dashboard/finance'
+import { Route as adminAdminDashboardLawyersRouteImport } from './routes/(admin)/admin-dashboard/lawyers'
+import { Route as adminAdminDashboardReportRouteImport } from './routes/(admin)/admin-dashboard/report'
+import { Route as adminAdminDashboardTasksRouteImport } from './routes/(admin)/admin-dashboard/tasks'
 import { Route as assistingLawyersAssistingDashboardIndexRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/index'
 import { Route as assistingLawyersAssistingDashboardMessagesRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/messages'
 import { Route as assistingLawyersAssistingDashboardNotificationsRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/notifications'
@@ -25,6 +32,13 @@ import { Route as engagingLaywersDashboardPaymentsRouteImport } from './routes/(
 import { Route as engagingLaywersDashboardPostJobRouteImport } from './routes/(engaging-laywers)/dashboard/post-job'
 import { Route as engagingLaywersDashboardRatingsRouteImport } from './routes/(engaging-laywers)/dashboard/ratings'
 import { Route as engagingLaywersDashboardSettingsRouteImport } from './routes/(engaging-laywers)/dashboard/settings'
+import { Route as adminAdminDashboardLawyersIndexRouteImport } from './routes/(admin)/admin-dashboard/lawyers/index'
+import { Route as adminAdminDashboardLawyersLawyerIdRouteImport } from './routes/(admin)/admin-dashboard/lawyers.$lawyerId'
+import { Route as adminAdminDashboardTasksIndexRouteImport } from './routes/(admin)/admin-dashboard/tasks/index'
+import { Route as adminAdminDashboardTasksTaskIdRouteImport } from './routes/(admin)/admin-dashboard/tasks.$taskId'
+import { Route as assistingLawyersAssistingDashboardApplyTaskIdRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/apply.$taskId'
+import { Route as assistingLawyersAssistingDashboardMessagesTaskIdRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/messages.$taskId'
+import { Route as assistingLawyersAssistingDashboardTaskTaskIdRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/task.$taskId'
 import { Route as engagingLaywersAuthLoginIndexRouteImport } from './routes/(engaging-laywers)/auth/login/index'
 import { Route as engagingLaywersAuthRegisterIndexRouteImport } from './routes/(engaging-laywers)/auth/register/index'
 import { Route as engagingLaywersDashboardFundTaskTaskIdRouteImport } from './routes/(engaging-laywers)/dashboard/fund-task.$taskId'
@@ -34,6 +48,11 @@ import { Route as engagingLaywersDashboardReviewWorkTaskIdRouteImport } from './
 import { Route as engagingLaywersDashboardSubmitRatingTaskIdRouteImport } from './routes/(engaging-laywers)/dashboard/submit-rating.$taskId'
 import { Route as engagingLaywersDashboardYourRatingTaskIdRouteImport } from './routes/(engaging-laywers)/dashboard/your-rating.$taskId'
 
+const adminAdminDashboardRoute = adminAdminDashboardRouteImport.update({
+  id: '/(admin)/admin-dashboard',
+  path: '/admin-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const assistingLawyersAssistingDashboardRoute =
   assistingLawyersAssistingDashboardRouteImport.update({
     id: '/(assisting-lawyers)/assisting-dashboard',
@@ -51,6 +70,42 @@ const landingpageIndexRoute = landingpageIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const adminAdminDashboardIndexRoute =
+  adminAdminDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardAnnouncementsRoute =
+  adminAdminDashboardAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardFinanceRoute =
+  adminAdminDashboardFinanceRouteImport.update({
+    id: '/finance',
+    path: '/finance',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardLawyersRoute =
+  adminAdminDashboardLawyersRouteImport.update({
+    id: '/lawyers',
+    path: '/lawyers',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardReportRoute =
+  adminAdminDashboardReportRouteImport.update({
+    id: '/report',
+    path: '/report',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardTasksRoute =
+  adminAdminDashboardTasksRouteImport.update({
+    id: '/tasks',
+    path: '/tasks',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
 const assistingLawyersAssistingDashboardIndexRoute =
   assistingLawyersAssistingDashboardIndexRouteImport.update({
     id: '/',
@@ -129,6 +184,48 @@ const engagingLaywersDashboardSettingsRoute =
     path: '/settings',
     getParentRoute: () => engagingLaywersDashboardRoute,
   } as any)
+const adminAdminDashboardLawyersIndexRoute =
+  adminAdminDashboardLawyersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => adminAdminDashboardLawyersRoute,
+  } as any)
+const adminAdminDashboardLawyersLawyerIdRoute =
+  adminAdminDashboardLawyersLawyerIdRouteImport.update({
+    id: '/$lawyerId',
+    path: '/$lawyerId',
+    getParentRoute: () => adminAdminDashboardLawyersRoute,
+  } as any)
+const adminAdminDashboardTasksIndexRoute =
+  adminAdminDashboardTasksIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => adminAdminDashboardTasksRoute,
+  } as any)
+const adminAdminDashboardTasksTaskIdRoute =
+  adminAdminDashboardTasksTaskIdRouteImport.update({
+    id: '/$taskId',
+    path: '/$taskId',
+    getParentRoute: () => adminAdminDashboardTasksRoute,
+  } as any)
+const assistingLawyersAssistingDashboardApplyTaskIdRoute =
+  assistingLawyersAssistingDashboardApplyTaskIdRouteImport.update({
+    id: '/apply/$taskId',
+    path: '/apply/$taskId',
+    getParentRoute: () => assistingLawyersAssistingDashboardRoute,
+  } as any)
+const assistingLawyersAssistingDashboardMessagesTaskIdRoute =
+  assistingLawyersAssistingDashboardMessagesTaskIdRouteImport.update({
+    id: '/$taskId',
+    path: '/$taskId',
+    getParentRoute: () => assistingLawyersAssistingDashboardMessagesRoute,
+  } as any)
+const assistingLawyersAssistingDashboardTaskTaskIdRoute =
+  assistingLawyersAssistingDashboardTaskTaskIdRouteImport.update({
+    id: '/task/$taskId',
+    path: '/task/$taskId',
+    getParentRoute: () => assistingLawyersAssistingDashboardRoute,
+  } as any)
 const engagingLaywersAuthLoginIndexRoute =
   engagingLaywersAuthLoginIndexRouteImport.update({
     id: '/(engaging-laywers)/auth/login/',
@@ -179,10 +276,16 @@ const engagingLaywersDashboardYourRatingTaskIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/admin-dashboard': typeof adminAdminDashboardRouteWithChildren
   '/assisting-dashboard': typeof assistingLawyersAssistingDashboardRouteWithChildren
   '/dashboard': typeof engagingLaywersDashboardRouteWithChildren
   '/': typeof landingpageIndexRoute
-  '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRoute
+  '/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
+  '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
+  '/admin-dashboard/lawyers': typeof adminAdminDashboardLawyersRouteWithChildren
+  '/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/admin-dashboard/tasks': typeof adminAdminDashboardTasksRouteWithChildren
+  '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
   '/assisting-dashboard/payments': typeof assistingLawyersAssistingDashboardPaymentsRoute
   '/assisting-dashboard/profile': typeof assistingLawyersAssistingDashboardProfileRoute
@@ -193,20 +296,31 @@ export interface FileRoutesByFullPath {
   '/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
   '/dashboard/ratings': typeof engagingLaywersDashboardRatingsRoute
   '/dashboard/settings': typeof engagingLaywersDashboardSettingsRoute
+  '/admin-dashboard/': typeof adminAdminDashboardIndexRoute
   '/assisting-dashboard/': typeof assistingLawyersAssistingDashboardIndexRoute
   '/dashboard/': typeof engagingLaywersDashboardIndexRoute
+  '/admin-dashboard/lawyers/$lawyerId': typeof adminAdminDashboardLawyersLawyerIdRoute
+  '/admin-dashboard/tasks/$taskId': typeof adminAdminDashboardTasksTaskIdRoute
+  '/assisting-dashboard/apply/$taskId': typeof assistingLawyersAssistingDashboardApplyTaskIdRoute
+  '/assisting-dashboard/messages/$taskId': typeof assistingLawyersAssistingDashboardMessagesTaskIdRoute
+  '/assisting-dashboard/task/$taskId': typeof assistingLawyersAssistingDashboardTaskTaskIdRoute
   '/dashboard/fund-task/$taskId': typeof engagingLaywersDashboardFundTaskTaskIdRoute
   '/dashboard/messages/$taskId': typeof engagingLaywersDashboardMessagesTaskIdRoute
   '/dashboard/review-proposals/$taskId': typeof engagingLaywersDashboardReviewProposalsTaskIdRoute
   '/dashboard/review-work/$taskId': typeof engagingLaywersDashboardReviewWorkTaskIdRoute
   '/dashboard/submit-rating/$taskId': typeof engagingLaywersDashboardSubmitRatingTaskIdRoute
   '/dashboard/your-rating/$taskId': typeof engagingLaywersDashboardYourRatingTaskIdRoute
+  '/admin-dashboard/lawyers/': typeof adminAdminDashboardLawyersIndexRoute
+  '/admin-dashboard/tasks/': typeof adminAdminDashboardTasksIndexRoute
   '/auth/login/': typeof engagingLaywersAuthLoginIndexRoute
   '/auth/register/': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof landingpageIndexRoute
-  '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRoute
+  '/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
+  '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
+  '/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
   '/assisting-dashboard/payments': typeof assistingLawyersAssistingDashboardPaymentsRoute
   '/assisting-dashboard/profile': typeof assistingLawyersAssistingDashboardProfileRoute
@@ -217,23 +331,37 @@ export interface FileRoutesByTo {
   '/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
   '/dashboard/ratings': typeof engagingLaywersDashboardRatingsRoute
   '/dashboard/settings': typeof engagingLaywersDashboardSettingsRoute
+  '/admin-dashboard': typeof adminAdminDashboardIndexRoute
   '/assisting-dashboard': typeof assistingLawyersAssistingDashboardIndexRoute
   '/dashboard': typeof engagingLaywersDashboardIndexRoute
+  '/admin-dashboard/lawyers/$lawyerId': typeof adminAdminDashboardLawyersLawyerIdRoute
+  '/admin-dashboard/tasks/$taskId': typeof adminAdminDashboardTasksTaskIdRoute
+  '/assisting-dashboard/apply/$taskId': typeof assistingLawyersAssistingDashboardApplyTaskIdRoute
+  '/assisting-dashboard/messages/$taskId': typeof assistingLawyersAssistingDashboardMessagesTaskIdRoute
+  '/assisting-dashboard/task/$taskId': typeof assistingLawyersAssistingDashboardTaskTaskIdRoute
   '/dashboard/fund-task/$taskId': typeof engagingLaywersDashboardFundTaskTaskIdRoute
   '/dashboard/messages/$taskId': typeof engagingLaywersDashboardMessagesTaskIdRoute
   '/dashboard/review-proposals/$taskId': typeof engagingLaywersDashboardReviewProposalsTaskIdRoute
   '/dashboard/review-work/$taskId': typeof engagingLaywersDashboardReviewWorkTaskIdRoute
   '/dashboard/submit-rating/$taskId': typeof engagingLaywersDashboardSubmitRatingTaskIdRoute
   '/dashboard/your-rating/$taskId': typeof engagingLaywersDashboardYourRatingTaskIdRoute
+  '/admin-dashboard/lawyers': typeof adminAdminDashboardLawyersIndexRoute
+  '/admin-dashboard/tasks': typeof adminAdminDashboardTasksIndexRoute
   '/auth/login': typeof engagingLaywersAuthLoginIndexRoute
   '/auth/register': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/(admin)/admin-dashboard': typeof adminAdminDashboardRouteWithChildren
   '/(assisting-lawyers)/assisting-dashboard': typeof assistingLawyersAssistingDashboardRouteWithChildren
   '/(engaging-laywers)/dashboard': typeof engagingLaywersDashboardRouteWithChildren
   '/(landingpage)/': typeof landingpageIndexRoute
-  '/(assisting-lawyers)/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRoute
+  '/(admin)/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
+  '/(admin)/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
+  '/(admin)/admin-dashboard/lawyers': typeof adminAdminDashboardLawyersRouteWithChildren
+  '/(admin)/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/(admin)/admin-dashboard/tasks': typeof adminAdminDashboardTasksRouteWithChildren
+  '/(assisting-lawyers)/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/(assisting-lawyers)/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
   '/(assisting-lawyers)/assisting-dashboard/payments': typeof assistingLawyersAssistingDashboardPaymentsRoute
   '/(assisting-lawyers)/assisting-dashboard/profile': typeof assistingLawyersAssistingDashboardProfileRoute
@@ -244,23 +372,37 @@ export interface FileRoutesById {
   '/(engaging-laywers)/dashboard/post-job': typeof engagingLaywersDashboardPostJobRoute
   '/(engaging-laywers)/dashboard/ratings': typeof engagingLaywersDashboardRatingsRoute
   '/(engaging-laywers)/dashboard/settings': typeof engagingLaywersDashboardSettingsRoute
+  '/(admin)/admin-dashboard/': typeof adminAdminDashboardIndexRoute
   '/(assisting-lawyers)/assisting-dashboard/': typeof assistingLawyersAssistingDashboardIndexRoute
   '/(engaging-laywers)/dashboard/': typeof engagingLaywersDashboardIndexRoute
+  '/(admin)/admin-dashboard/lawyers/$lawyerId': typeof adminAdminDashboardLawyersLawyerIdRoute
+  '/(admin)/admin-dashboard/tasks/$taskId': typeof adminAdminDashboardTasksTaskIdRoute
+  '/(assisting-lawyers)/assisting-dashboard/apply/$taskId': typeof assistingLawyersAssistingDashboardApplyTaskIdRoute
+  '/(assisting-lawyers)/assisting-dashboard/messages/$taskId': typeof assistingLawyersAssistingDashboardMessagesTaskIdRoute
+  '/(assisting-lawyers)/assisting-dashboard/task/$taskId': typeof assistingLawyersAssistingDashboardTaskTaskIdRoute
   '/(engaging-laywers)/dashboard/fund-task/$taskId': typeof engagingLaywersDashboardFundTaskTaskIdRoute
   '/(engaging-laywers)/dashboard/messages/$taskId': typeof engagingLaywersDashboardMessagesTaskIdRoute
   '/(engaging-laywers)/dashboard/review-proposals/$taskId': typeof engagingLaywersDashboardReviewProposalsTaskIdRoute
   '/(engaging-laywers)/dashboard/review-work/$taskId': typeof engagingLaywersDashboardReviewWorkTaskIdRoute
   '/(engaging-laywers)/dashboard/submit-rating/$taskId': typeof engagingLaywersDashboardSubmitRatingTaskIdRoute
   '/(engaging-laywers)/dashboard/your-rating/$taskId': typeof engagingLaywersDashboardYourRatingTaskIdRoute
+  '/(admin)/admin-dashboard/lawyers/': typeof adminAdminDashboardLawyersIndexRoute
+  '/(admin)/admin-dashboard/tasks/': typeof adminAdminDashboardTasksIndexRoute
   '/(engaging-laywers)/auth/login/': typeof engagingLaywersAuthLoginIndexRoute
   '/(engaging-laywers)/auth/register/': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/admin-dashboard'
     | '/assisting-dashboard'
     | '/dashboard'
     | '/'
+    | '/admin-dashboard/announcements'
+    | '/admin-dashboard/finance'
+    | '/admin-dashboard/lawyers'
+    | '/admin-dashboard/report'
+    | '/admin-dashboard/tasks'
     | '/assisting-dashboard/messages'
     | '/assisting-dashboard/notifications'
     | '/assisting-dashboard/payments'
@@ -272,19 +414,30 @@ export interface FileRouteTypes {
     | '/dashboard/post-job'
     | '/dashboard/ratings'
     | '/dashboard/settings'
+    | '/admin-dashboard/'
     | '/assisting-dashboard/'
     | '/dashboard/'
+    | '/admin-dashboard/lawyers/$lawyerId'
+    | '/admin-dashboard/tasks/$taskId'
+    | '/assisting-dashboard/apply/$taskId'
+    | '/assisting-dashboard/messages/$taskId'
+    | '/assisting-dashboard/task/$taskId'
     | '/dashboard/fund-task/$taskId'
     | '/dashboard/messages/$taskId'
     | '/dashboard/review-proposals/$taskId'
     | '/dashboard/review-work/$taskId'
     | '/dashboard/submit-rating/$taskId'
     | '/dashboard/your-rating/$taskId'
+    | '/admin-dashboard/lawyers/'
+    | '/admin-dashboard/tasks/'
     | '/auth/login/'
     | '/auth/register/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin-dashboard/announcements'
+    | '/admin-dashboard/finance'
+    | '/admin-dashboard/report'
     | '/assisting-dashboard/messages'
     | '/assisting-dashboard/notifications'
     | '/assisting-dashboard/payments'
@@ -296,21 +449,35 @@ export interface FileRouteTypes {
     | '/dashboard/post-job'
     | '/dashboard/ratings'
     | '/dashboard/settings'
+    | '/admin-dashboard'
     | '/assisting-dashboard'
     | '/dashboard'
+    | '/admin-dashboard/lawyers/$lawyerId'
+    | '/admin-dashboard/tasks/$taskId'
+    | '/assisting-dashboard/apply/$taskId'
+    | '/assisting-dashboard/messages/$taskId'
+    | '/assisting-dashboard/task/$taskId'
     | '/dashboard/fund-task/$taskId'
     | '/dashboard/messages/$taskId'
     | '/dashboard/review-proposals/$taskId'
     | '/dashboard/review-work/$taskId'
     | '/dashboard/submit-rating/$taskId'
     | '/dashboard/your-rating/$taskId'
+    | '/admin-dashboard/lawyers'
+    | '/admin-dashboard/tasks'
     | '/auth/login'
     | '/auth/register'
   id:
     | '__root__'
+    | '/(admin)/admin-dashboard'
     | '/(assisting-lawyers)/assisting-dashboard'
     | '/(engaging-laywers)/dashboard'
     | '/(landingpage)/'
+    | '/(admin)/admin-dashboard/announcements'
+    | '/(admin)/admin-dashboard/finance'
+    | '/(admin)/admin-dashboard/lawyers'
+    | '/(admin)/admin-dashboard/report'
+    | '/(admin)/admin-dashboard/tasks'
     | '/(assisting-lawyers)/assisting-dashboard/messages'
     | '/(assisting-lawyers)/assisting-dashboard/notifications'
     | '/(assisting-lawyers)/assisting-dashboard/payments'
@@ -322,19 +489,28 @@ export interface FileRouteTypes {
     | '/(engaging-laywers)/dashboard/post-job'
     | '/(engaging-laywers)/dashboard/ratings'
     | '/(engaging-laywers)/dashboard/settings'
+    | '/(admin)/admin-dashboard/'
     | '/(assisting-lawyers)/assisting-dashboard/'
     | '/(engaging-laywers)/dashboard/'
+    | '/(admin)/admin-dashboard/lawyers/$lawyerId'
+    | '/(admin)/admin-dashboard/tasks/$taskId'
+    | '/(assisting-lawyers)/assisting-dashboard/apply/$taskId'
+    | '/(assisting-lawyers)/assisting-dashboard/messages/$taskId'
+    | '/(assisting-lawyers)/assisting-dashboard/task/$taskId'
     | '/(engaging-laywers)/dashboard/fund-task/$taskId'
     | '/(engaging-laywers)/dashboard/messages/$taskId'
     | '/(engaging-laywers)/dashboard/review-proposals/$taskId'
     | '/(engaging-laywers)/dashboard/review-work/$taskId'
     | '/(engaging-laywers)/dashboard/submit-rating/$taskId'
     | '/(engaging-laywers)/dashboard/your-rating/$taskId'
+    | '/(admin)/admin-dashboard/lawyers/'
+    | '/(admin)/admin-dashboard/tasks/'
     | '/(engaging-laywers)/auth/login/'
     | '/(engaging-laywers)/auth/register/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  adminAdminDashboardRoute: typeof adminAdminDashboardRouteWithChildren
   assistingLawyersAssistingDashboardRoute: typeof assistingLawyersAssistingDashboardRouteWithChildren
   engagingLaywersDashboardRoute: typeof engagingLaywersDashboardRouteWithChildren
   landingpageIndexRoute: typeof landingpageIndexRoute
@@ -344,6 +520,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(admin)/admin-dashboard': {
+      id: '/(admin)/admin-dashboard'
+      path: '/admin-dashboard'
+      fullPath: '/admin-dashboard'
+      preLoaderRoute: typeof adminAdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(assisting-lawyers)/assisting-dashboard': {
       id: '/(assisting-lawyers)/assisting-dashboard'
       path: '/assisting-dashboard'
@@ -364,6 +547,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof landingpageIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(admin)/admin-dashboard/': {
+      id: '/(admin)/admin-dashboard/'
+      path: '/'
+      fullPath: '/admin-dashboard/'
+      preLoaderRoute: typeof adminAdminDashboardIndexRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/announcements': {
+      id: '/(admin)/admin-dashboard/announcements'
+      path: '/announcements'
+      fullPath: '/admin-dashboard/announcements'
+      preLoaderRoute: typeof adminAdminDashboardAnnouncementsRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/finance': {
+      id: '/(admin)/admin-dashboard/finance'
+      path: '/finance'
+      fullPath: '/admin-dashboard/finance'
+      preLoaderRoute: typeof adminAdminDashboardFinanceRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/lawyers': {
+      id: '/(admin)/admin-dashboard/lawyers'
+      path: '/lawyers'
+      fullPath: '/admin-dashboard/lawyers'
+      preLoaderRoute: typeof adminAdminDashboardLawyersRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/report': {
+      id: '/(admin)/admin-dashboard/report'
+      path: '/report'
+      fullPath: '/admin-dashboard/report'
+      preLoaderRoute: typeof adminAdminDashboardReportRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/tasks': {
+      id: '/(admin)/admin-dashboard/tasks'
+      path: '/tasks'
+      fullPath: '/admin-dashboard/tasks'
+      preLoaderRoute: typeof adminAdminDashboardTasksRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
     }
     '/(assisting-lawyers)/assisting-dashboard/': {
       id: '/(assisting-lawyers)/assisting-dashboard/'
@@ -456,6 +681,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof engagingLaywersDashboardSettingsRouteImport
       parentRoute: typeof engagingLaywersDashboardRoute
     }
+    '/(admin)/admin-dashboard/lawyers/': {
+      id: '/(admin)/admin-dashboard/lawyers/'
+      path: '/'
+      fullPath: '/admin-dashboard/lawyers/'
+      preLoaderRoute: typeof adminAdminDashboardLawyersIndexRouteImport
+      parentRoute: typeof adminAdminDashboardLawyersRoute
+    }
+    '/(admin)/admin-dashboard/lawyers/$lawyerId': {
+      id: '/(admin)/admin-dashboard/lawyers/$lawyerId'
+      path: '/$lawyerId'
+      fullPath: '/admin-dashboard/lawyers/$lawyerId'
+      preLoaderRoute: typeof adminAdminDashboardLawyersLawyerIdRouteImport
+      parentRoute: typeof adminAdminDashboardLawyersRoute
+    }
+    '/(admin)/admin-dashboard/tasks/': {
+      id: '/(admin)/admin-dashboard/tasks/'
+      path: '/'
+      fullPath: '/admin-dashboard/tasks/'
+      preLoaderRoute: typeof adminAdminDashboardTasksIndexRouteImport
+      parentRoute: typeof adminAdminDashboardTasksRoute
+    }
+    '/(admin)/admin-dashboard/tasks/$taskId': {
+      id: '/(admin)/admin-dashboard/tasks/$taskId'
+      path: '/$taskId'
+      fullPath: '/admin-dashboard/tasks/$taskId'
+      preLoaderRoute: typeof adminAdminDashboardTasksTaskIdRouteImport
+      parentRoute: typeof adminAdminDashboardTasksRoute
+    }
+    '/(assisting-lawyers)/assisting-dashboard/apply/$taskId': {
+      id: '/(assisting-lawyers)/assisting-dashboard/apply/$taskId'
+      path: '/apply/$taskId'
+      fullPath: '/assisting-dashboard/apply/$taskId'
+      preLoaderRoute: typeof assistingLawyersAssistingDashboardApplyTaskIdRouteImport
+      parentRoute: typeof assistingLawyersAssistingDashboardRoute
+    }
+    '/(assisting-lawyers)/assisting-dashboard/messages/$taskId': {
+      id: '/(assisting-lawyers)/assisting-dashboard/messages/$taskId'
+      path: '/$taskId'
+      fullPath: '/assisting-dashboard/messages/$taskId'
+      preLoaderRoute: typeof assistingLawyersAssistingDashboardMessagesTaskIdRouteImport
+      parentRoute: typeof assistingLawyersAssistingDashboardMessagesRoute
+    }
+    '/(assisting-lawyers)/assisting-dashboard/task/$taskId': {
+      id: '/(assisting-lawyers)/assisting-dashboard/task/$taskId'
+      path: '/task/$taskId'
+      fullPath: '/assisting-dashboard/task/$taskId'
+      preLoaderRoute: typeof assistingLawyersAssistingDashboardTaskTaskIdRouteImport
+      parentRoute: typeof assistingLawyersAssistingDashboardRoute
+    }
     '/(engaging-laywers)/auth/login/': {
       id: '/(engaging-laywers)/auth/login/'
       path: '/auth/login'
@@ -515,19 +789,90 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface adminAdminDashboardLawyersRouteChildren {
+  adminAdminDashboardLawyersLawyerIdRoute: typeof adminAdminDashboardLawyersLawyerIdRoute
+  adminAdminDashboardLawyersIndexRoute: typeof adminAdminDashboardLawyersIndexRoute
+}
+
+const adminAdminDashboardLawyersRouteChildren: adminAdminDashboardLawyersRouteChildren =
+  {
+    adminAdminDashboardLawyersLawyerIdRoute:
+      adminAdminDashboardLawyersLawyerIdRoute,
+    adminAdminDashboardLawyersIndexRoute: adminAdminDashboardLawyersIndexRoute,
+  }
+
+const adminAdminDashboardLawyersRouteWithChildren =
+  adminAdminDashboardLawyersRoute._addFileChildren(
+    adminAdminDashboardLawyersRouteChildren,
+  )
+
+interface adminAdminDashboardTasksRouteChildren {
+  adminAdminDashboardTasksTaskIdRoute: typeof adminAdminDashboardTasksTaskIdRoute
+  adminAdminDashboardTasksIndexRoute: typeof adminAdminDashboardTasksIndexRoute
+}
+
+const adminAdminDashboardTasksRouteChildren: adminAdminDashboardTasksRouteChildren =
+  {
+    adminAdminDashboardTasksTaskIdRoute: adminAdminDashboardTasksTaskIdRoute,
+    adminAdminDashboardTasksIndexRoute: adminAdminDashboardTasksIndexRoute,
+  }
+
+const adminAdminDashboardTasksRouteWithChildren =
+  adminAdminDashboardTasksRoute._addFileChildren(
+    adminAdminDashboardTasksRouteChildren,
+  )
+
+interface adminAdminDashboardRouteChildren {
+  adminAdminDashboardAnnouncementsRoute: typeof adminAdminDashboardAnnouncementsRoute
+  adminAdminDashboardFinanceRoute: typeof adminAdminDashboardFinanceRoute
+  adminAdminDashboardLawyersRoute: typeof adminAdminDashboardLawyersRouteWithChildren
+  adminAdminDashboardReportRoute: typeof adminAdminDashboardReportRoute
+  adminAdminDashboardTasksRoute: typeof adminAdminDashboardTasksRouteWithChildren
+  adminAdminDashboardIndexRoute: typeof adminAdminDashboardIndexRoute
+}
+
+const adminAdminDashboardRouteChildren: adminAdminDashboardRouteChildren = {
+  adminAdminDashboardAnnouncementsRoute: adminAdminDashboardAnnouncementsRoute,
+  adminAdminDashboardFinanceRoute: adminAdminDashboardFinanceRoute,
+  adminAdminDashboardLawyersRoute: adminAdminDashboardLawyersRouteWithChildren,
+  adminAdminDashboardReportRoute: adminAdminDashboardReportRoute,
+  adminAdminDashboardTasksRoute: adminAdminDashboardTasksRouteWithChildren,
+  adminAdminDashboardIndexRoute: adminAdminDashboardIndexRoute,
+}
+
+const adminAdminDashboardRouteWithChildren =
+  adminAdminDashboardRoute._addFileChildren(adminAdminDashboardRouteChildren)
+
+interface assistingLawyersAssistingDashboardMessagesRouteChildren {
+  assistingLawyersAssistingDashboardMessagesTaskIdRoute: typeof assistingLawyersAssistingDashboardMessagesTaskIdRoute
+}
+
+const assistingLawyersAssistingDashboardMessagesRouteChildren: assistingLawyersAssistingDashboardMessagesRouteChildren =
+  {
+    assistingLawyersAssistingDashboardMessagesTaskIdRoute:
+      assistingLawyersAssistingDashboardMessagesTaskIdRoute,
+  }
+
+const assistingLawyersAssistingDashboardMessagesRouteWithChildren =
+  assistingLawyersAssistingDashboardMessagesRoute._addFileChildren(
+    assistingLawyersAssistingDashboardMessagesRouteChildren,
+  )
+
 interface assistingLawyersAssistingDashboardRouteChildren {
-  assistingLawyersAssistingDashboardMessagesRoute: typeof assistingLawyersAssistingDashboardMessagesRoute
+  assistingLawyersAssistingDashboardMessagesRoute: typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   assistingLawyersAssistingDashboardNotificationsRoute: typeof assistingLawyersAssistingDashboardNotificationsRoute
   assistingLawyersAssistingDashboardPaymentsRoute: typeof assistingLawyersAssistingDashboardPaymentsRoute
   assistingLawyersAssistingDashboardProfileRoute: typeof assistingLawyersAssistingDashboardProfileRoute
   assistingLawyersAssistingDashboardProposalsRoute: typeof assistingLawyersAssistingDashboardProposalsRoute
   assistingLawyersAssistingDashboardIndexRoute: typeof assistingLawyersAssistingDashboardIndexRoute
+  assistingLawyersAssistingDashboardApplyTaskIdRoute: typeof assistingLawyersAssistingDashboardApplyTaskIdRoute
+  assistingLawyersAssistingDashboardTaskTaskIdRoute: typeof assistingLawyersAssistingDashboardTaskTaskIdRoute
 }
 
 const assistingLawyersAssistingDashboardRouteChildren: assistingLawyersAssistingDashboardRouteChildren =
   {
     assistingLawyersAssistingDashboardMessagesRoute:
-      assistingLawyersAssistingDashboardMessagesRoute,
+      assistingLawyersAssistingDashboardMessagesRouteWithChildren,
     assistingLawyersAssistingDashboardNotificationsRoute:
       assistingLawyersAssistingDashboardNotificationsRoute,
     assistingLawyersAssistingDashboardPaymentsRoute:
@@ -538,6 +883,10 @@ const assistingLawyersAssistingDashboardRouteChildren: assistingLawyersAssisting
       assistingLawyersAssistingDashboardProposalsRoute,
     assistingLawyersAssistingDashboardIndexRoute:
       assistingLawyersAssistingDashboardIndexRoute,
+    assistingLawyersAssistingDashboardApplyTaskIdRoute:
+      assistingLawyersAssistingDashboardApplyTaskIdRoute,
+    assistingLawyersAssistingDashboardTaskTaskIdRoute:
+      assistingLawyersAssistingDashboardTaskTaskIdRoute,
   }
 
 const assistingLawyersAssistingDashboardRouteWithChildren =
@@ -606,6 +955,7 @@ const engagingLaywersDashboardRouteWithChildren =
   )
 
 const rootRouteChildren: RootRouteChildren = {
+  adminAdminDashboardRoute: adminAdminDashboardRouteWithChildren,
   assistingLawyersAssistingDashboardRoute:
     assistingLawyersAssistingDashboardRouteWithChildren,
   engagingLaywersDashboardRoute: engagingLaywersDashboardRouteWithChildren,

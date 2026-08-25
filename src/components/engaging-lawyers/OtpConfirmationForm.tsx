@@ -3,14 +3,20 @@ import { ChevronRight } from 'lucide-react'
 
 interface OtpConfirmationFormProps {
   otp: string[]
+  isLoading?: boolean
+  serverOtp?: string
   setOtp: (val: string[]) => void
   onVerify: () => void
+  onResend?: () => void
 }
 
 export function OtpConfirmationForm({
   otp,
+  isLoading = false,
+  serverOtp,
   setOtp,
   onVerify,
+  onResend,
 }: OtpConfirmationFormProps) {
   const [error, setError] = useState('')
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -137,9 +143,32 @@ export function OtpConfirmationForm({
           </div>
 
           {/* Caption */}
-          <p className="mt-3 font-secondary text-[13px] text-[#6b7280] text-center">
-            Enter your one-time password.
-          </p>
+          <div className="mt-3 flex flex-col items-center gap-2">
+            <p className="font-secondary text-[13px] text-[#6b7280] text-center">
+              Enter your 6-digit one-time password.
+            </p>
+            {serverOtp && (
+              <button
+                type="button"
+                onClick={() => {
+                  setOtp(serverOtp.split(''))
+                  otpRefs.current[5]?.focus()
+                }}
+                className="px-3 py-1 rounded-full bg-[#E8F5F3] text-[#00726D] text-xs font-semibold hover:bg-[#d5eee9] transition cursor-pointer select-none"
+              >
+                Auto-fill Code ({serverOtp})
+              </button>
+            )}
+            {onResend && (
+              <button
+                type="button"
+                onClick={onResend}
+                className="text-xs text-[#00726D] font-medium hover:underline cursor-pointer select-none mt-1"
+              >
+                Didn't receive code? Resend OTP
+              </button>
+            )}
+          </div>
         </div>
 
         {error ? (
@@ -153,9 +182,10 @@ export function OtpConfirmationForm({
       <div className="mt-8 flex justify-end">
         <button
           type="submit"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer"
+          disabled={isLoading}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <span>Verify and Continue</span>
+          <span>{isLoading ? 'Verifying OTP...' : 'Verify and Continue'}</span>
           <ChevronRight className="h-4 w-4 stroke-[2]" aria-hidden />
         </button>
       </div>

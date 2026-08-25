@@ -16,6 +16,7 @@ import {
   labelClass,
   requiredMark,
 } from '#/components/engaging-lawyers/constants'
+import { useCreateTask } from '#/hooks/useTasks'
 
 export const Route = createFileRoute('/(engaging-laywers)/dashboard/post-job')({
   component: PostJobPage,
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/(engaging-laywers)/dashboard/post-job')({
 
 function PostJobPage() {
   const navigate = useNavigate()
+  const createTaskMutation = useCreateTask()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [practiceArea, setPracticeArea] = useState('Property Law')
@@ -57,28 +59,34 @@ function PostJobPage() {
       return
     }
 
+    if (isNaN(Date.parse(deadline))) {
+      setError('Please provide a valid deadline date.')
+      return
+    }
+
     const feeAmount = parseFloat(proposedFee.replace(/[^0-9]/g, ''))
     if (practiceArea === 'Property Law' && feeAmount < 30000) {
       setError('Proposed fee is below the minimum limit for Property Law.')
       return
     }
 
-    const stored = localStorage.getItem('counsel_tasks')
-    const currentTasks = stored ? JSON.parse(stored) : []
-    const newTask = {
-      id: Date.now().toString(),
-      title,
-      category: practiceArea,
-      court: courtLocation,
-      deadline,
-      budget: proposedFee.startsWith('₦') ? proposedFee : `₦${proposedFee}`,
-      workers: '0 Proposals',
-      status: 'Open',
-    }
-    const nextTasks = [...currentTasks, newTask]
-    localStorage.setItem('counsel_tasks', JSON.stringify(nextTasks))
-
-    navigate({ to: '/dashboard' })
+    createTaskMutation.mutate(
+      {
+        title,
+        description,
+        practiceArea,
+        courtLocation,
+        deadline,
+        proposedFee,
+        confidentiality,
+        attachmentUrl: uploadedFile ? uploadedFile.name : undefined,
+      },
+      {
+        onSuccess: () => {
+          navigate({ to: '/dashboard' })
+        },
+      },
+    )
   }
 
   return (
@@ -236,10 +244,10 @@ function PostJobPage() {
             <label className={labelClass}>
               <span>Deadline {requiredMark}</span>
               <input
-                type="text"
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                placeholder="dd/mm/yyyy"
                 className={inputClass}
               />
             </label>
@@ -371,9 +379,10 @@ function PostJobPage() {
             </button>
             <button
               type="submit"
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none cursor-pointer"
+              disabled={createTaskMutation.isPending}
+              className="inline-flex h-11 items-center justify-center rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Post Task
+              {createTaskMutation.isPending ? 'Posting Task...' : 'Post Task'}
             </button>
           </div>
         </form>

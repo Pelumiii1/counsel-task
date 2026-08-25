@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { requireGuestGuard } from '#/lib/authGuard'
 import logoNew from '../../../../assets/logo-new.png'
 import Seal from '../../../../assets/engaging-lawyers/counseltask-verification-seal 3.png'
 import { AccountDetailsForm } from '#/components/engaging-lawyers/AccountDetailsForm'
@@ -7,34 +8,46 @@ import { OtpConfirmationForm } from '#/components/engaging-lawyers/OtpConfirmati
 import { ProfessionalCredentialsForm } from '#/components/engaging-lawyers/ProfessionalCredentialsForm'
 import { BankDetailsForm } from '#/components/engaging-lawyers/BankDetailsForm'
 import { AccountStatus } from '#/components/engaging-lawyers/AccountStatus'
+import { useRegistrationStore } from '#/store/useRegistrationStore'
+import {
+  useInitiateRegistration,
+  useVerifyOtp,
+  useSubmitCredentials,
+  useSubmitBankDetails,
+} from '#/hooks/useRegistration'
 
 export const Route = createFileRoute('/(engaging-laywers)/auth/register/')({
+  beforeLoad: () => {
+    requireGuestGuard()
+  },
   component: AuthRegisterPage,
 })
 
 function AuthRegisterPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
-  const [showOtp, setShowOtp] = useState(false)
+  const {
+    step,
+    showOtp,
+    fullName,
+    firm,
+    email,
+    phone,
+    password,
+    confirmPassword,
+    otp,
+    serverGeneratedOtp,
+    callToBarDate,
+    enrolmentNumber,
+    bank,
+    accountNumber,
+    setStep,
+    setShowOtp,
+    setStep1Values,
+    setOtp,
+    setStep2Values,
+    setStep3Values,
+  } = useRegistrationStore()
 
-  // Step 1 Form States
-  const [step1Values, setStep1Values] = useState({
-    fullName: '',
-    firm: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-  })
-
-  // Step 1 OTP State
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(''))
-
-  // Step 2 Form States
-  const [step2Values, setStep2Values] = useState({
-    callToBarDate: '',
-    enrolmentNumber: '',
-  })
-
+  // Local file state for uploads
   const [practisingFeeReceipt, setPractisingFeeReceipt] = useState<File | null>(
     null,
   )
@@ -42,12 +55,69 @@ function AuthRegisterPage() {
   const [supportingCredentials, setSupportingCredentials] =
     useState<File | null>(null)
 
-  const handleStep1Change = (key: keyof typeof step1Values, val: string) => {
-    setStep1Values((prev) => ({ ...prev, [key]: val }))
+  // TanStack Query Mutations
+  const initiateMutation = useInitiateRegistration()
+  const verifyOtpMutation = useVerifyOtp()
+  const credentialsMutation = useSubmitCredentials()
+  const bankDetailsMutation = useSubmitBankDetails()
+
+  // Handle Step 1 Submit (Initiate)
+  const handleProceedStep1 = () => {
+    initiateMutation.mutate({
+      fullName,
+      firm,
+      email,
+      phone,
+      password,
+      role: 'ENGAGING_LAWYER',
+    })
   }
 
-  const handleStep2Change = (key: keyof typeof step2Values, val: string) => {
-    setStep2Values((prev) => ({ ...prev, [key]: val }))
+  // Handle Step 1 OTP Verification
+  const handleVerifyOtp = () => {
+    verifyOtpMutation.mutate({
+      email,
+      otp: otp.join(''),
+    })
+  }
+
+  // Handle Resend OTP
+  const handleResendOtp = () => {
+    initiateMutation.mutate({
+      fullName,
+      firm,
+      email,
+      phone,
+      password,
+      role: 'ENGAGING_LAWYER',
+    })
+  }
+
+  // Handle Step 2 Submit (Credentials)
+  const handleProceedStep2 = () => {
+    credentialsMutation.mutate({
+      email,
+      callToBarDate,
+      enrolmentNumber,
+      practisingFeeReceiptUrl: practisingFeeReceipt?.name || 'Practising_Fee_Receipt.pdf',
+      governmentIdUrl: governmentId?.name || 'NIN_Slip.pdf',
+      supportingCredentialsUrl: supportingCredentials?.name,
+    })
+  }
+
+  // Handle Step 3 Submit (Bank Details)
+  const handleProceedStep3 = (bankData: {
+    bank: string
+    accountNumber: string
+    accountName: string
+  }) => {
+    setStep3Values(bankData)
+    bankDetailsMutation.mutate({
+      email,
+      bankName: bankData.bank,
+      accountNumber: bankData.accountNumber,
+      accountName: bankData.accountName,
+    })
   }
 
   return (
@@ -72,27 +142,39 @@ function AuthRegisterPage() {
         <div className="w-full max-w-160 mx-auto my-auto rise-in">
           {step === 1 && !showOtp && (
             <AccountDetailsForm
-              values={step1Values}
-              onChange={handleStep1Change}
-              onProceed={() => setShowOtp(true)}
+              values={{
+                fullName,
+                firm,
+                email,
+                phone,
+                password,
+                confirmPassword,
+              }}
+              isLoading={initiateMutation.isPending}
+              onChange={(key, val) => setStep1Values({ [key]: val })}
+              onProceed={handleProceedStep1}
             />
           )}
 
           {step === 1 && showOtp && (
             <OtpConfirmationForm
               otp={otp}
+              serverOtp={serverGeneratedOtp}
+              isLoading={verifyOtpMutation.isPending}
               setOtp={setOtp}
-              onVerify={() => {
-                setShowOtp(false)
-                setStep(2)
-              }}
+              onVerify={handleVerifyOtp}
+              onResend={handleResendOtp}
             />
           )}
 
           {step === 2 && (
             <ProfessionalCredentialsForm
-              values={step2Values}
-              onChange={handleStep2Change}
+              values={{
+                callToBarDate,
+                enrolmentNumber,
+              }}
+              isLoading={credentialsMutation.isPending}
+              onChange={(key, val) => setStep2Values({ [key]: val })}
               practisingFeeReceipt={practisingFeeReceipt}
               setPractisingFeeReceipt={setPractisingFeeReceipt}
               governmentId={governmentId}
@@ -100,15 +182,18 @@ function AuthRegisterPage() {
               supportingCredentials={supportingCredentials}
               setSupportingCredentials={setSupportingCredentials}
               onBack={() => setStep(1)}
-              onProceed={() => setStep(3)}
+              onProceed={handleProceedStep2}
             />
           )}
 
           {step === 3 && (
             <BankDetailsForm
-              fullName={step1Values.fullName}
+              fullName={fullName}
+              initialBank={bank}
+              initialAccountNumber={accountNumber}
+              isLoading={bankDetailsMutation.isPending}
               onBack={() => setStep(2)}
-              onProceed={() => setStep(4)}
+              onProceed={handleProceedStep3}
             />
           )}
 

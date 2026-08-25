@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { requireGuestGuard } from '#/lib/authGuard'
 import { ChevronRight, Eye, EyeOff } from 'lucide-react'
 import logoNew from '../../../../assets/logo-new.png'
 import Seal from '../../../../assets/engaging-lawyers/counseltask-verification-seal 3.png'
@@ -8,28 +9,36 @@ import {
   labelClass,
   requiredMark,
 } from '#/components/engaging-lawyers/constants'
+import { useLogin } from '#/hooks/useAuth'
 
 export const Route = createFileRoute('/(engaging-laywers)/auth/login/')({
+  beforeLoad: () => {
+    requireGuestGuard()
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
+  const loginMutation = useLogin()
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     setError('')
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setError('Please complete all required fields.')
       return
     }
 
-    navigate({ to: '/dashboard' })
+    loginMutation.mutate({
+      email: email.trim(),
+      password,
+    })
   }
 
   return (
@@ -68,8 +77,7 @@ function RouteComponent() {
               </h1>
 
               <p className="mt-4 font-secondary text-[15px] font-normal leading-[1.6] text-[#6b7280]">
-                We'll notify you by email once a decision is made. This usually
-                takes 1—2 business days.
+                Access your verified CounselTask legal workspace, manage briefs, and review active tasks.
               </p>
 
               {/* Inputs Group */}
@@ -78,6 +86,7 @@ function RouteComponent() {
                   <span>Email Address {requiredMark}</span>
                   <input
                     type="email"
+                    required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="You@gmail.com"
@@ -90,9 +99,10 @@ function RouteComponent() {
                   <div className="relative w-full">
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Create a password"
+                      placeholder="Enter your password"
                       className={`${inputClass} pr-12`}
                     />
                     <button
@@ -120,13 +130,26 @@ function RouteComponent() {
               ) : null}
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-4 flex justify-end">
+            {/* Action Buttons & Links */}
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs sm:text-sm text-gray-500 font-normal">
+                Don't have an account?{' '}
+                <Link
+                  to="/auth/register"
+                  className="font-semibold text-[#00726D] hover:underline"
+                >
+                  Register here
+                </Link>
+              </p>
+
               <button
                 type="submit"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer"
+                disabled={loginMutation.isPending}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed w-full sm:w-auto"
               >
-                <span>Sign In</span>
+                <span>
+                  {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+                </span>
                 <ChevronRight className="h-4 w-4 stroke-2" aria-hidden />
               </button>
             </div>

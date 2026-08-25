@@ -1,12 +1,48 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Users } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
 } from '#/components/ui/dialog'
+import { useTaskById } from '#/hooks/useTasks'
+import { useTaskProposals, type ProposalItem } from '#/hooks/useProposals'
+
+const formatYearsOfPractice = (experience?: string): string => {
+  if (!experience) return '5 yrs'
+  const trimmed = experience.trim()
+  const yearMatch = trimmed.match(/\b(19\d\d|20\d\d)\b/)
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1], 10)
+    const currentYear = new Date().getFullYear()
+    const diff = currentYear - year
+    return `${Math.max(1, diff)} yrs`
+  }
+  const numMatch = trimmed.match(/^(\d+)/)
+  if (numMatch) {
+    return `${numMatch[1]} yrs`
+  }
+  return '5 yrs'
+}
+
+const formatExperienceSubtitle = (experience?: string): string => {
+  if (!experience) return '5 years practice'
+  const trimmed = experience.trim()
+  const yearMatch = trimmed.match(/\b(19\d\d|20\d\d)\b/)
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1], 10)
+    const currentYear = new Date().getFullYear()
+    const diff = currentYear - year
+    return `${Math.max(1, diff)} years practice`
+  }
+  const numMatch = trimmed.match(/^(\d+)\s*(?:years?|yrs?)/i)
+  if (numMatch) {
+    return `${numMatch[1]} years practice`
+  }
+  return trimmed
+}
 
 export const Route = createFileRoute(
   '/(engaging-laywers)/dashboard/review-proposals/$taskId',
@@ -14,118 +50,41 @@ export const Route = createFileRoute(
   component: ReviewProposalsPage,
 })
 
-interface Task {
-  id: string
-  title: string
-  category: string
-  court: string
-  deadline: string
-  budget: string
-  workers: string
-  status: 'Open' | 'In Progress' | 'Awaiting review' | 'Completed'
-}
-
-interface Lawyer {
-  id: string
-  name: string
-  initials: string
-  practiceArea: string
-  experience: string
-  location: string
-  rating: number
-  tasksCount: number
-  quote: string
-  badges: string[]
-  fee: string
-  about: string
-}
-
-const LAWYERS: Lawyer[] = [
-  {
-    id: 'FA',
-    name: 'Funke Adeyemi',
-    initials: 'FA',
-    practiceArea: 'Property Law',
-    experience: '8 years practice',
-    location: 'Ikeja, Lagos',
-    rating: 4.9,
-    tasksCount: 32,
-    quote:
-      "I'm based five minutes from Ikeja High Court and available all morning tomorrow. I've handled 14 land dispute matters this year.",
-    badges: ['Available Tomorrow', '12 Property Law Tasks'],
-    fee: '₦35,000',
-    about:
-      'Called to bar in 2018. Focused on property and land dispute matters across Lagos State courts. Based five minutes from Ikeja High Court, available for short-notice hearings most weekdays.',
-  },
-  {
-    id: 'TO',
-    name: 'Tunde Okafor',
-    initials: 'TO',
-    practiceArea: 'Property Law',
-    experience: '5 years practice',
-    location: 'Yaba, Lagos',
-    rating: 4.9,
-    tasksCount: 32,
-    quote:
-      'Available and can be at the court by 8:30am. Happy to share a brief summary note after the hearing.',
-    badges: ['Available Tomorrow', '6 Property Law Tasks'],
-    fee: '₦32,000',
-    about:
-      'Called to bar in 2021. Specializes in commercial litigation, property transactions, and dispute resolution. Prompt, analytical, and highly accessible for court appearances.',
-  },
-  {
-    id: 'CB',
-    name: 'Chiamaka Bello',
-    initials: 'CB',
-    practiceArea: 'Property & Commercial Law',
-    experience: '11 years practice',
-    location: 'Ikeja, Lagos',
-    rating: 5.0,
-    tasksCount: 61,
-    quote:
-      'Senior counsel with extensive land matter experience. Available tomorrow, can also assist with the follow-up filing if needed.',
-    badges: ['Available Tomorrow', '29 Property Law Tasks'],
-    fee: '₦40,000',
-    about:
-      'Called to bar in 2015. Highly seasoned advocate with vast expertise in complex real estate acquisitions, landlord-tenant disputes, and corporate representation.',
-  },
-]
-
 function ReviewProposalsPage() {
   const { taskId } = Route.useParams()
   const navigate = useNavigate()
-  const [task, setTask] = useState<Task | null>(null)
-  const [selectedLawyerId, setSelectedLawyerId] = useState<string>('FA')
-  const [activeProfileLawyer, setActiveProfileLawyer] = useState<Lawyer | null>(
-    null,
-  )
+  const { data: task, isLoading: isTaskLoading } = useTaskById(taskId)
+  const { data: serverProposals, isLoading: isProposalsLoading } = useTaskProposals(taskId)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('counsel_tasks')
-    if (stored) {
-      const tasks: Task[] = JSON.parse(stored)
-      const foundTask = tasks.find((t) => t.id === taskId)
-      if (foundTask) {
-        setTask(foundTask)
-      }
-    }
-  }, [taskId])
+  const proposals = serverProposals || []
+  const [selectedProposalId, setSelectedProposalId] = useState<string | number | null>(null)
+  const [activeProfileLawyer, setActiveProfileLawyer] = useState<ProposalItem | null>(null)
 
   const handleFundTask = () => {
-    if (!task) return
+    if (!task || !selectedProposalId) return
 
     navigate({
-      to: `/dashboard/fund-task/${task.id}`,
+      to: '/dashboard/fund-task/$taskId',
+      params: { taskId: String(task.id) },
       search: {
-        lawyerId: selectedLawyerId,
+        lawyerId: String(selectedProposalId),
       },
     })
   }
 
+  if (isTaskLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 min-h-100 font-secondary">
+        <div className="w-8 h-8 border-3 border-[#00726d] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-gray-500 text-sm">Loading task...</p>
+      </div>
+    )
+  }
+
   if (!task) {
     return (
-      <div className="p-8 text-center font-secondary">
-        <p className="text-gray-500">Loading task details...</p>
+      <div className="p-12 text-center font-secondary">
+        <p className="text-gray-500">Task not found or unavailable.</p>
         <Link
           to="/dashboard"
           className="mt-4 inline-flex items-center gap-2 text-[#00726d] font-medium hover:underline"
@@ -136,6 +95,8 @@ function ReviewProposalsPage() {
       </div>
     )
   }
+
+  console.log("task proposals", proposals)
 
   return (
     <div className="flex flex-col w-full min-h-full font-secondary bg-[#f9fafb] px-6 py-8 sm:px-12">
@@ -151,7 +112,7 @@ function ReviewProposalsPage() {
           Review proposals
         </h1>
         <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed max-w-2xl">
-          {LAWYERS.length} verified lawyers have applied. Compare their fee,
+          {proposals.length} verified {proposals.length === 1 ? 'lawyer has' : 'lawyers have'} applied. Compare their fee,
           experience, and availability before selecting one.
         </p>
       </div>
@@ -163,11 +124,11 @@ function ReviewProposalsPage() {
             {task.title}
           </h2>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 font-normal">
-            <span>{task.court}</span>
+            <span>{task.court || task.courtLocation}</span>
             <span className="text-gray-300">•</span>
             <span>{task.deadline}</span>
             <span className="text-gray-300">•</span>
-            <span>{task.category}</span>
+            <span>{task.category || task.practiceArea}</span>
           </div>
         </div>
 
@@ -182,110 +143,137 @@ function ReviewProposalsPage() {
       </div>
 
       {/* Lawyers Proposals List */}
-      <div className="flex flex-col gap-5 mb-8">
-        {LAWYERS.map((lawyer) => {
-          const isSelected = selectedLawyerId === lawyer.id
-          return (
-            <div
-              key={lawyer.id}
-              className={`w-full bg-white rounded-xl border p-5 transition-all duration-350 flex flex-col md:flex-row justify-between items-start gap-5 ${
-                isSelected
+      {isProposalsLoading ? (
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-gray-150 mb-8">
+          <div className="w-8 h-8 border-3 border-[#00726d] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-sm text-gray-500">Loading proposals from assisting lawyers...</p>
+        </div>
+      ) : proposals.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-dashed border-gray-250 mb-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-3">
+            <Users className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-semibold text-gray-800 mb-1">No proposals yet</h3>
+          <p className="text-xs sm:text-sm text-gray-500 max-w-md">
+            Assisting lawyers have not submitted proposals for this task yet. As soon as applications are received, they will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-5 mb-8">
+          {proposals.map((lawyer) => {
+            const isSelected = selectedProposalId === lawyer.id
+            return (
+              <div
+                key={lawyer.id}
+                className={`w-full bg-white rounded-xl border p-5 transition-all duration-350 flex flex-col md:flex-row justify-between items-start gap-5 ${isSelected
                   ? 'border-[#00726d] ring-1 ring-[#00726d]/20 shadow-[0_6px_25px_rgba(0,114,109,0.04)] bg-[#00726d]/0.5'
                   : 'border-gray-150 hover:border-gray-300 hover:shadow-[0_4px_15px_rgba(0,0,0,0.02)]'
-              }`}
-            >
-              {/* Left Side: Avatar & Details */}
-              <div className="flex items-start gap-4 flex-1">
-                {/* Initials Avatar */}
-                <div className="w-11 h-11 rounded-full bg-[#005e5a] text-white flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 select-none font-secondary">
-                  {lawyer.initials}
-                </div>
-
-                {/* Details Column */}
-                <div className="flex flex-col items-start">
-                  <h3 className="text-base font-bold text-gray-900 leading-tight font-primary">
-                    {lawyer.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 font-normal mt-1 leading-normal">
-                    {lawyer.practiceArea} • {lawyer.experience} •{' '}
-                    {lawyer.location}
-                  </p>
-
-                  {/* Rating Stars Row */}
-                  <div className="flex items-center gap-1 mt-2.5 select-none">
-                    <span className="text-[#00726d] text-sm flex items-center tracking-wider">
-                      ★★★★★
-                    </span>
-                    <span className="text-[11px] text-gray-500 font-medium ml-1.5">
-                      {lawyer.rating} ({lawyer.tasksCount} tasks)
-                    </span>
+                  }`}
+              >
+                {/* Left Side: Avatar & Details */}
+                <div className="flex items-start gap-4 flex-1">
+                  {/* Initials Avatar */}
+                  <div className="w-11 h-11 rounded-full bg-[#005e5a] text-white flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 select-none font-secondary">
+                    {lawyer.initials || 'LA'}
                   </div>
 
-                  {/* Pitch Quote */}
-                  <p className="text-xs text-gray-600 font-normal italic leading-relaxed mt-3.5 bg-gray-50/50 p-3 rounded-lg border border-gray-100 max-w-xl">
-                    "{lawyer.quote}"
-                  </p>
+                  {/* Details Column */}
+                  <div className="flex flex-col items-start">
+                    <h3 className="text-base font-bold text-gray-900 leading-tight font-primary">
+                      {lawyer.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-normal mt-1 leading-normal">
+                      {lawyer.practiceArea} • {formatExperienceSubtitle(lawyer.experience)} •{' '}
+                      {lawyer.location}
+                    </p>
 
-                  {/* Badges Pill Row */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {lawyer.badges.map((badge) => (
-                      <span
-                        key={badge}
-                        className="inline-flex text-[10px] font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-150/40"
-                      >
-                        {badge}
+                    {/* Rating Stars Row */}
+                    <div className="flex items-center gap-1 mt-2.5 select-none">
+                      <span className="text-[#00726d] text-sm flex items-center tracking-wider">
+                        ★★★★★
                       </span>
-                    ))}
-                  </div>
+                      <span className="text-[11px] text-gray-500 font-medium ml-1.5">
+                        {lawyer.rating ? lawyer.rating.toFixed(1) : '5.0'} ({lawyer.tasksCount || 0} tasks)
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-3 mt-5 w-full lg:w-fit">
-                    <button
-                      onClick={() => setActiveProfileLawyer(lawyer)}
-                      className="flex-1 inline-flex h-9 items-center justify-center rounded-lg border border-gray-200 px-3 lg:px-4 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 cursor-pointer whitespace-nowrap"
-                    >
-                      View Profile
-                    </button>
-                    {isSelected ? (
-                      <button className="flex-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#00726d] px-3 text-xs font-semibold text-white transition hover:bg-[#005c58] cursor-pointer whitespace-nowrap">
-                        Selected
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setSelectedLawyerId(lawyer.id)}
-                        className="flex-1 inline-flex h-9 items-center justify-center rounded-lg border border-[#00726d] px-3 text-xs font-semibold text-[#00726d] transition hover:bg-[#00726d]/5 cursor-pointer whitespace-nowrap"
-                      >
-                        Select
-                      </button>
+                    {/* Pitch Quote */}
+                    {lawyer.quote && (
+                      <p className="text-xs text-gray-600 font-normal italic leading-relaxed mt-3.5 bg-gray-50/50 p-3 rounded-lg border border-gray-100 max-w-xl">
+                        "{lawyer.quote}"
+                      </p>
                     )}
+
+                    {/* Badges Pill Row */}
+                    {lawyer.badges && lawyer.badges.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {lawyer.badges.map((badge) => (
+                          <span
+                            key={badge}
+                            className="inline-flex text-[10px] font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-150/40"
+                          >
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-3 mt-5 w-full lg:w-fit">
+                      <button
+                        onClick={() => setActiveProfileLawyer(lawyer)}
+                        className="flex-1 inline-flex h-9 items-center justify-center rounded-lg border border-[#E4E4E7] px-3 lg:px-4 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 cursor-pointer whitespace-nowrap"
+                      >
+                        View Profile
+                      </button>
+                      {isSelected ? (
+                        <button className="flex-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#00726d] px-3 text-xs font-semibold text-white transition hover:bg-[#005c58] cursor-pointer whitespace-nowrap">
+                          Selected
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedProposalId(lawyer.id)}
+                          className="flex-1 inline-flex h-9 items-center justify-center rounded-lg border-[0.5px] border-[#00726D] px-3 text-xs font-semibold text-[#00726D] transition hover:bg-[#00726d]/5 cursor-pointer whitespace-nowrap"
+                        >
+                          Select
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side: Quote Fee & Actions for larger screens */}
+                <div className="hidden md:flex flex-col items-end justify-between self-stretch shrink-0 text-right min-h-35">
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-[20px] font-medium text-[#00726D] leading-tight font-primary">
+                      {lawyer.fee}
+                    </span>
+                    <span className="text-[12px] text-black font-normal uppercase tracking-wider font-secondary">
+                      Quoted Fee
+                    </span>
                   </div>
                 </div>
               </div>
-
-              {/* Right Side: Quote Fee & Actions for larger screens */}
-              <div className="hidden md:flex flex-col items-end justify-between self-stretch shrink-0 text-right min-h-35">
-                <div className="flex flex-col items-end gap-0.5">
-                  <span className="text-[20px] font-medium text-[#00726D] leading-tight font-primary">
-                    {lawyer.fee}
-                  </span>
-                  <span className="text-[12px] text-black font-normal uppercase tracking-wider font-secondary">
-                    Quoted Fee
-                  </span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Bottom Sticky-like Action Footer */}
-      <div className="flex justify-end pt-4 border-t border-gray-100 select-none">
-        <button
-          onClick={handleFundTask}
-          className="inline-flex h-11 items-center justify-center rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-semibold text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shadow-sm"
-        >
-          Fund This Task
-        </button>
-      </div>
+      {proposals.length > 0 && (
+        <div className="flex justify-end pt-4 border-t border-gray-100 select-none">
+          <button
+            onClick={handleFundTask}
+            disabled={!selectedProposalId}
+            className={`inline-flex h-11 items-center justify-center rounded-lg px-6 font-secondary text-sm font-semibold text-white transition shadow-sm ${
+              selectedProposalId
+                ? 'bg-[#00726d] hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer'
+                : 'bg-gray-300 cursor-not-allowed opacity-60'
+            }`}
+          >
+            Fund This Task
+          </button>
+        </div>
+      )}
 
       {/* Profile Detail Dialog Modal */}
       <Dialog
@@ -297,20 +285,20 @@ function ReviewProposalsPage() {
         {activeProfileLawyer && (
           <DialogContent
             showCloseButton={false}
-            className="sm:max-w-md bg-white rounded-3xl border-0 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col gap-6"
+            className="sm:max-w-xl bg-white rounded-3xl border-0 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col gap-6"
           >
             {/* Header info */}
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-[#005e5a] text-white flex items-center justify-center font-bold text-sm shrink-0 select-none font-secondary">
-                {activeProfileLawyer.initials}
+                {activeProfileLawyer.initials || 'LA'}
               </div>
               <div className="flex flex-col items-start text-left">
-                <DialogTitle className="text-xl font-bold text-gray-900 leading-tight font-primary">
+                <DialogTitle className="text-[18px] font-medium text-black leading-tight font-primary">
                   {activeProfileLawyer.name}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-gray-500 font-normal mt-0.5 leading-normal">
+                <DialogDescription className="text-sm text-black font-normal mt-0.5 leading-normal font-secondary">
                   {activeProfileLawyer.practiceArea} •{' '}
-                  {activeProfileLawyer.experience} •{' '}
+                  {formatExperienceSubtitle(activeProfileLawyer.experience)} •{' '}
                   {activeProfileLawyer.location}
                 </DialogDescription>
               </div>
@@ -319,28 +307,28 @@ function ReviewProposalsPage() {
             {/* Quick stats grid boxes */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-[#eef8f8] rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 select-none">
-                <span className="text-xl sm:text-2xl font-bold text-[#00726d] leading-none font-secondary">
-                  {activeProfileLawyer.rating}
+                <span className="text-xl sm:text-2xl font-bold text-[#00726d] leading-none font-primary">
+                  {activeProfileLawyer.rating ? activeProfileLawyer.rating.toFixed(1) : '5.0'}
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-[#00726d]/80 uppercase tracking-wider font-secondary">
+                <span className="text-[10px] sm:text-xs font-normal text-[#00726d]/80 uppercase tracking-wider font-secondary">
                   Rating
                 </span>
               </div>
 
               <div className="bg-[#eef8f8] rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 select-none">
-                <span className="text-xl sm:text-2xl font-bold text-[#00726d] leading-none font-secondary">
-                  {activeProfileLawyer.tasksCount}
+                <span className="text-xl sm:text-2xl font-bold text-[#00726d] leading-none font-primary">
+                  {activeProfileLawyer.tasksCount || 0}
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-[#00726d]/80 uppercase tracking-wider font-secondary">
+                <span className="text-[10px] sm:text-xs font-normal text-[#00726d]/80 uppercase tracking-wider font-secondary">
                   Task Done
                 </span>
               </div>
 
               <div className="bg-[#eef8f8] rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 select-none font-secondary">
-                <span className="text-xl sm:text-2xl font-bold text-[#00726d] leading-none">
-                  {activeProfileLawyer.experience.split(' ')[0]} yrs
+                <span className="text-xl sm:text-[20px] font-bold text-[#00726d] leading-none font-primary">
+                  {formatYearsOfPractice(activeProfileLawyer.experience)}
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-[#00726d]/80 uppercase tracking-wider">
+                <span className="text-[10px] sm:text-xs font-normal text-[#00726d]/80 uppercase tracking-wider font-secondary">
                   Practice
                 </span>
               </div>
@@ -348,11 +336,11 @@ function ReviewProposalsPage() {
 
             {/* About text segment */}
             <div className="flex flex-col items-start gap-2.5 text-left">
-              <h4 className="text-xs font-bold text-gray-400 tracking-wider uppercase select-none font-secondary">
+              <h4 className="text-xs font-bold text-[#595959] tracking-wider uppercase select-none font-roboto">
                 About
               </h4>
-              <p className="text-sm text-gray-700 leading-relaxed font-normal">
-                {activeProfileLawyer.about}
+              <p className="text-sm text-[#595959] leading-relaxed font-normal">
+                {activeProfileLawyer.about || 'Verified legal practitioner on CounselTask.'}
               </p>
             </div>
 

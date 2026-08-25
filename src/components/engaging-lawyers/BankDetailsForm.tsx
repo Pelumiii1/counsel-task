@@ -3,17 +3,27 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface BankDetailsFormProps {
   fullName: string
+  isLoading?: boolean
+  initialBank?: string
+  initialAccountNumber?: string
   onBack: () => void
-  onProceed: () => void
+  onProceed: (bankData: {
+    bank: string
+    accountNumber: string
+    accountName: string
+  }) => void
 }
 
 export function BankDetailsForm({
   fullName,
+  isLoading = false,
+  initialBank = '',
+  initialAccountNumber = '',
   onBack,
   onProceed,
 }: BankDetailsFormProps) {
-  const [bank, setBank] = useState('')
-  const [accountNumber, setAccountNumber] = useState('')
+  const [bank, setBank] = useState(initialBank)
+  const [accountNumber, setAccountNumber] = useState(initialAccountNumber)
   const [accountName, setAccountName] = useState(fullName || 'Habeeb Onasanya')
 
   // Update account name if fullName prop changes
@@ -26,7 +36,7 @@ export function BankDetailsForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!bank || !accountNumber) return
-    onProceed()
+    onProceed({ bank, accountNumber, accountName })
   }
 
   const bankOptions = [
@@ -133,14 +143,14 @@ export function BankDetailsForm({
 
         <button
           type="submit"
-          disabled={!bank || accountNumber.length < 10}
+          disabled={isLoading || !bank || accountNumber.length < 10}
           className={`inline-flex h-11 items-center gap-2 rounded-lg px-6 font-secondary text-xs sm:text-sm font-semibold text-white transition active:scale-[0.98] cursor-pointer ${
-            bank && accountNumber.length === 10
+            bank && accountNumber.length === 10 && !isLoading
               ? 'bg-[#00726d] hover:bg-[#005c58]'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >
-          <span>Continue</span>
+          <span>{isLoading ? 'Submitting Details...' : 'Continue'}</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
