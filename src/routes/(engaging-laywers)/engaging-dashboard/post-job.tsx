@@ -18,7 +18,7 @@ import {
 } from '#/components/engaging-lawyers/constants'
 import { useCreateTask } from '#/hooks/useTasks'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard/post-job')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/post-job')({
   component: PostJobPage,
 })
 
@@ -83,7 +83,7 @@ function PostJobPage() {
       },
       {
         onSuccess: () => {
-          navigate({ to: '/dashboard' })
+          navigate({ to: '/engaging-dashboard' })
         },
       },
     )

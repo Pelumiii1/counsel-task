@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Eye, EyeOff } from 'lucide-react'
 import { useEngagingProfile, useUpdateEngagingProfile } from '#/hooks/useProfile'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard/settings')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/settings')({
   component: SettingsPage,
 })
 

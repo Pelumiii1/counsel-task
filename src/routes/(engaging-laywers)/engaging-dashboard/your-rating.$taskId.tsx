@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import CheckIcon from '#/assets/icons/check-icon.png'
+import { useTaskById } from '#/hooks/useTasks'
 
 export const Route = createFileRoute(
-  '/(engaging-laywers)/dashboard/your-rating/$taskId',
+  '/(engaging-laywers)/engaging-dashboard/your-rating/$taskId',
 )({
   component: YourRatingPage,
 })
@@ -24,25 +25,43 @@ interface Task {
 
 function YourRatingPage() {
   const { taskId } = Route.useParams()
+  const { data: serverTask, isLoading: isTaskLoading } = useTaskById(taskId)
   const [task, setTask] = useState<Task | null>(null)
 
   useEffect(() => {
+    let localFound: Task | null = null
     const stored = localStorage.getItem('counsel_tasks')
     if (stored) {
-      const tasks: Task[] = JSON.parse(stored)
-      const foundTask = tasks.find((t) => t.id === taskId)
-      if (foundTask) {
-        setTask(foundTask)
-      }
+      try {
+        const tasks: Task[] = JSON.parse(stored)
+        localFound = tasks.find((t) => String(t.id) === String(taskId)) || null
+      } catch (_) {}
     }
-  }, [taskId])
+
+    if (localFound) {
+      setTask(localFound)
+    } else if (serverTask) {
+      setTask({
+        id: String(serverTask.id),
+        title: serverTask.title,
+        category: serverTask.category || serverTask.practiceArea || 'General',
+        court: serverTask.court || serverTask.courtLocation || 'High Court',
+        deadline: serverTask.deadline || 'Completed',
+        budget: serverTask.budget || '₦0',
+        workers: serverTask.workers || 'Assigned Counsel',
+        status: (serverTask.status as any) || 'Completed',
+        rating: (serverTask as any).rating,
+        feedback: (serverTask as any).feedback,
+      })
+    }
+  }, [taskId, serverTask])
 
   if (!task) {
     return (
       <div className="p-8 text-center font-secondary">
-        <p className="text-gray-505">Loading rating details...</p>
+        <p className="text-gray-500">Loading rating details...</p>
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="mt-4 inline-flex items-center gap-2 text-[#00726d] font-medium hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -52,11 +71,9 @@ function YourRatingPage() {
     )
   }
 
-  const lawyerName = task.workers || 'Chiamaka Bello'
-  const ratingValue = task.rating !== undefined ? task.rating : 5
-  const feedbackValue =
-    task.feedback ||
-    'Quick turnaround and very clear drafting. Would work with her again'
+  const lawyerName = task.workers || 'Assigned Counsel'
+  const ratingValue = typeof task.rating === 'number' ? task.rating : 0
+  const feedbackValue = task.feedback || ''
 
   // Calculate dynamic Net Payout: budget * 0.865
   const budgetNum = parseFloat(task.budget.replace(/[^0-9.]/g, '')) || 0
@@ -68,7 +85,7 @@ function YourRatingPage() {
       {/* Top Header */}
       <div className="flex flex-col gap-3 select-none mb-8 text-left">
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-205 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 stroke-[2]" />
@@ -121,14 +138,16 @@ function YourRatingPage() {
         </div>
 
         {/* Your Feedback Text Display */}
-        <div className="flex flex-col items-start gap-2.5 w-full text-left pt-4 border-t border-gray-100">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider select-none font-secondary">
-            Your Feedback
-          </span>
-          <p className="text-xs sm:text-[13px] text-gray-700 font-normal leading-relaxed">
-            {feedbackValue}
-          </p>
-        </div>
+        {feedbackValue ? (
+          <div className="flex flex-col items-start gap-2.5 w-full text-left pt-4 border-t border-gray-100">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider select-none font-secondary">
+              Your Feedback
+            </span>
+            <p className="text-xs sm:text-[13px] text-gray-700 font-normal leading-relaxed">
+              {feedbackValue}
+            </p>
+          </div>
+        ) : null}
       </div>
     </div>
   )

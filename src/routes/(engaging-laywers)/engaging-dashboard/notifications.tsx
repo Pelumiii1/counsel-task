@@ -11,7 +11,7 @@ import {
 } from '#/hooks/useNotifications'
 
 export const Route = createFileRoute(
-  '/(engaging-laywers)/dashboard/notifications',
+  '/(engaging-laywers)/engaging-dashboard/notifications',
 )({
   component: NotificationsPage,
 })

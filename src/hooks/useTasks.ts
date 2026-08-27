@@ -91,3 +91,74 @@ export function useCreateTask() {
     },
   })
 }
+
+// Assisting lawyer requests completion confirmation
+export function useRequestTaskCompletion(taskId: string | number | undefined) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload?: { note?: string; attachmentUrl?: string }) => {
+      const response = await apiClient.post<{ success: boolean; message: string; data?: TaskItem }>(
+        `/assisting-lawyer/tasks/${taskId}/request-completion`,
+        payload || {},
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      queryClient.invalidateQueries({ queryKey: ['my-proposals'] })
+    },
+  })
+}
+
+// Engaging lawyer approves completion
+export function useApproveTaskCompletion(taskId: string | number | undefined) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<{ success: boolean; message: string; data?: TaskItem }>(
+        `/engaging-lawyer/tasks/${taskId}/approve`,
+      )
+      return response.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      toast.success(data.message || 'Task approved successfully!')
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to approve task completion.'
+      toast.error(msg)
+    },
+  })
+}
+
+// Engaging lawyer requests changes
+export function useRequestTaskChanges(taskId: string | number | undefined) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload?: { note?: string }) => {
+      const response = await apiClient.post<{ success: boolean; message: string; data?: TaskItem }>(
+        `/engaging-lawyer/tasks/${taskId}/request-changes`,
+        payload || {},
+      )
+      return response.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      toast.success(data.message || 'Changes requested successfully.')
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to request changes.'
+      toast.error(msg)
+    },
+  })
+}
+

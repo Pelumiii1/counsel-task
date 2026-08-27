@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
 
 interface OtpConfirmationFormProps {
@@ -178,12 +179,22 @@ export function OtpConfirmationForm({
         ) : null}
       </div>
 
-      {/* Verify Button */}
-      <div className="mt-8 flex justify-end">
+      {/* Verify Button & Login Link */}
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs sm:text-sm text-gray-500 font-normal">
+          Already have an account?{' '}
+          <Link
+            to="/auth/login"
+            className="font-semibold text-[#00726D] hover:underline"
+          >
+            Log in
+          </Link>
+        </p>
+
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed w-full sm:w-auto"
         >
           <span>{isLoading ? 'Verifying OTP...' : 'Verify and Continue'}</span>
           <ChevronRight className="h-4 w-4 stroke-[2]" aria-hidden />

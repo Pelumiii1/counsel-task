@@ -20,6 +20,7 @@ export interface ConversationItem {
   unreadCount: number
   taskId?: number
   taskTitle?: string
+  taskStatus?: string
   sharedFiles?: SharedFileItem[]
 }
 

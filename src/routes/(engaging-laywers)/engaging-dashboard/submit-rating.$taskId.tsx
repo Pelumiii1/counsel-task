@@ -1,66 +1,85 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import CheckIcon from '#/assets/icons/check-icon.png'
+import { useTaskById, useApproveTaskCompletion } from '#/hooks/useTasks'
+import { useTaskProposals } from '#/hooks/useProposals'
 
 export const Route = createFileRoute(
-  '/(engaging-laywers)/dashboard/submit-rating/$taskId',
+  '/(engaging-laywers)/engaging-dashboard/submit-rating/$taskId',
 )({
   component: SubmitRatingPage,
 })
 
-interface Task {
-  id: string
-  title: string
-  category: string
-  court: string
-  deadline: string
-  budget: string
-  workers: string
-  status: 'Open' | 'In Progress' | 'Awaiting review' | 'Completed'
-}
-
 function SubmitRatingPage() {
   const { taskId } = Route.useParams()
   const navigate = useNavigate()
-  const [task, setTask] = useState<Task | null>(null)
   const [rating, setRating] = useState<number>(5)
   const [feedback, setFeedback] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('counsel_tasks')
-    if (stored) {
-      const tasks: Task[] = JSON.parse(stored)
-      const foundTask = tasks.find((t) => t.id === taskId)
-      if (foundTask) {
-        setTask(foundTask)
-      }
-    }
-  }, [taskId])
+  const { data: serverTask, isLoading: isTaskLoading } = useTaskById(taskId)
+  const { data: proposals } = useTaskProposals(taskId)
+  const selectedProposal = proposals?.find((p) => p.status === 'Selected') || proposals?.[0]
+  const { mutate: approveTask, isPending: isApproving } = useApproveTaskCompletion(taskId)
+
+  const lawyerName =
+    selectedProposal?.name ||
+    serverTask?.workers ||
+    'Chiamaka Bello'
 
   const handleRatingSubmit = () => {
-    if (!task) return
-    const stored = localStorage.getItem('counsel_tasks')
-    if (stored) {
-      const tasks: Task[] = JSON.parse(stored)
-      const updated = tasks.map((t) => {
-        if (t.id === task.id) {
-          return { ...t, status: 'Completed' as const }
+    approveTask(undefined, {
+      onSuccess: () => {
+        let tasksList: any[] = []
+        const stored = localStorage.getItem('counsel_tasks')
+        if (stored) {
+          try {
+            tasksList = JSON.parse(stored)
+          } catch (e) {
+            // ignore
+          }
         }
-        return t
-      })
-      localStorage.setItem('counsel_tasks', JSON.stringify(updated))
-    }
-    setIsSubmitted(true)
+        const existingIdx = tasksList.findIndex((t: any) => String(t.id) === String(taskId))
+        const taskData = {
+          id: String(taskId),
+          title: serverTask?.title || `Task #${taskId}`,
+          workers: lawyerName,
+          budget: serverTask?.budget || '₦0',
+          status: 'Completed',
+          rating,
+          feedback,
+          category: serverTask?.category || serverTask?.practiceArea || 'General',
+          court: serverTask?.court || serverTask?.courtLocation || 'High Court',
+          deadline: serverTask?.deadline || 'Completed',
+          ratedAt: new Date().toISOString(),
+        }
+        if (existingIdx >= 0) {
+          tasksList[existingIdx] = { ...tasksList[existingIdx], ...taskData }
+        } else {
+          tasksList.push(taskData)
+        }
+        localStorage.setItem('counsel_tasks', JSON.stringify(tasksList))
+        setIsSubmitted(true)
+      },
+    })
   }
 
-  if (!task) {
+  if (isTaskLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-16 min-h-[50vh] font-secondary">
+        <Loader2 className="w-8 h-8 text-[#00726d] animate-spin mb-3" />
+        <p className="text-gray-500 text-sm">Loading task...</p>
+      </div>
+    )
+  }
+
+  if (!serverTask) {
     return (
       <div className="p-8 text-center font-secondary">
-        <p className="text-gray-500">Loading details...</p>
+        <p className="text-gray-500">Task details not found.</p>
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="mt-4 inline-flex items-center gap-2 text-[#00726d] font-medium hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -70,10 +89,7 @@ function SubmitRatingPage() {
     )
   }
 
-  const lawyerName = task.workers || 'Chiamaka Bello'
-
-  // Calculate dynamic Net Payout: budget * 0.865
-  const budgetNum = parseFloat(task.budget.replace(/[^0-9.]/g, '')) || 0
+  const budgetNum = parseFloat(serverTask.budget.replace(/[^0-9.]/g, '')) || 0
   const netPayout = budgetNum * 0.865
   const netPayoutFormatted = `₦${Math.round(netPayout).toLocaleString()}`
 
@@ -82,8 +98,8 @@ function SubmitRatingPage() {
       {/* Top Header */}
       <div className="flex flex-col gap-3 select-none mb-6 text-left">
         <Link
-          to="/dashboard/review-work/$taskId"
-          params={{ taskId: task.id }}
+          to="/engaging-dashboard/review-work/$taskId"
+          params={{ taskId }}
           className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-205 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 stroke-2" />
@@ -162,7 +178,7 @@ function SubmitRatingPage() {
 
             {/* Back to Task Button */}
             <button
-              onClick={() => navigate({ to: '/dashboard' })}
+              onClick={() => navigate({ to: '/engaging-dashboard' })}
               className="inline-flex h-10 w-full sm:w-auto items-center justify-center rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-semibold text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shadow-sm mt-2 select-none"
             >
               Back to Task
@@ -235,10 +251,13 @@ function SubmitRatingPage() {
 
             {/* Submit button */}
             <button
+              type="button"
+              disabled={isApproving}
               onClick={handleRatingSubmit}
-              className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-lg bg-[#00726d] px-8 font-secondary text-sm font-semibold text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shadow-sm mt-2 select-none"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#00726d] px-8 font-secondary text-sm font-semibold text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shadow-sm mt-2 select-none disabled:opacity-50"
             >
-              Submit Rating
+              {isApproving && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>Submit Rating</span>
             </button>
           </>
         )}

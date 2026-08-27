@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Search, ListFilter } from 'lucide-react'
 import { useTasks, type TaskItem } from '#/hooks/useTasks'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard/payments')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/payments')({
   component: PaymentsPage,
 })
 

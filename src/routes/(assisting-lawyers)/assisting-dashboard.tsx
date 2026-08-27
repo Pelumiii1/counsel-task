@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createFileRoute,
   Outlet,
@@ -29,7 +29,13 @@ function AssistingDashboardLayout() {
   const navigate = useNavigate()
   const { data: profile } = useAssistingProfile()
 
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
   const handleLogout = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmLogout = () => {
     storeSessionToken(null)
     navigate({ to: '/auth/login' })
   }
@@ -37,7 +43,9 @@ function AssistingDashboardLayout() {
   const { data: notifications } = useNotifications('assisting')
   const prevUnreadNotifsRef = useRef<number | null>(null)
 
-  const unreadMessagesCount = (conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+  const unreadMessagesCount = (conversations || [])
+    .filter((c) => !c.taskStatus || c.taskStatus.toLowerCase() !== 'completed')
+    .reduce((sum, c) => sum + (c.unreadCount || 0), 0)
   const unreadNotificationsCount = (notifications || []).filter((n) => !n.isRead).length
   const hasUnreadNotifications = unreadNotificationsCount > 0 || unreadMessagesCount > 0
 
@@ -137,26 +145,41 @@ function AssistingDashboardLayout() {
           </nav>
         </div>
 
-        {/* Bottom Profile Footer Section */}
-        <Link
-          to="/assisting-dashboard/profile"
-          className="p-4 border-t border-[#0d2235] flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer no-underline text-inherit"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
-              {initials}
+        {/* Bottom Section: Profile Footer + Log Out */}
+        <div className="flex flex-col border-t border-[#0d2235]">
+          {/* Profile Footer */}
+          <Link
+            to="/assisting-dashboard/profile"
+            className="p-4 flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer no-underline text-inherit"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
+                {initials}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
+                  {fullName}
+                </span>
+                <span className="text-[10px] text-gray-400 font-normal leading-tight">
+                  {roleName}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
-                {fullName}
-              </span>
-              <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                {roleName}
-              </span>
-            </div>
+            <ChevronsUpDown className="w-4 h-4 text-gray-400" />
+          </Link>
+
+          {/* Log Out Button */}
+          <div className="px-3 pt-1 pb-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-2.5 w-full h-10 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-red-400 transition duration-100 cursor-pointer group"
+            >
+              <LogOut className="w-4 h-4 stroke-[1.8] group-hover:text-red-400 transition" />
+              <span>Log Out</span>
+            </button>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-gray-400" />
-        </Link>
+        </div>
       </aside>
 
       {/* Right Side: Navbar + Viewport Scroll Area */}
@@ -166,7 +189,7 @@ function AssistingDashboardLayout() {
           {/* Right Side: Switcher Pill Button, Notification & Avatar */}
           <div className="flex items-center gap-5 sm:gap-6">
             <Link
-              to="/dashboard"
+              to="/engaging-dashboard"
               className="h-9.5 px-4 sm:px-5 rounded-full border border-[#96D2CD] bg-[#E8F5F3] hover:bg-[#D8EFEA] hover:border-[#00726D]/50 text-[#00726D] text-[13px] sm:text-[13.5px] font-medium transition-all duration-200 cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs no-underline"
             >
               Switch to Engaging Lawyer
@@ -193,15 +216,6 @@ function AssistingDashboardLayout() {
             >
               {initials}
             </Link>
-
-            <button
-              onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-200"
-            >
-              <LogOut className="w-4.5 h-4.5 stroke-[1.8]" />
-            </button>
           </div>
         </header>
 
@@ -210,6 +224,42 @@ function AssistingDashboardLayout() {
           <Outlet />
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowLogoutModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <h2 className="font-primary text-xl font-semibold text-[#00726D]">Log out?</h2>
+              <p className="mt-2 font-secondary text-sm text-gray-500 leading-relaxed">
+                Are you sure you want to log out of your account? You'll need to sign in again to access your account.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="h-10 px-5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="h-10 px-5 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-sm font-medium transition cursor-pointer active:scale-[0.98]"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

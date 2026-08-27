@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Search, SlidersHorizontal, Check, Loader2, Wallet } from 'lucide-react'
-import { useMyProposals, type ProposalItem } from '#/hooks/useProposals'
+import { useMyProposals } from '#/hooks/useProposals'
 import { useAssistingProfile } from '#/hooks/useProfile'
 
 export const Route = createFileRoute(
@@ -144,7 +144,7 @@ function AssistingPaymentsPage() {
             </button>
 
             {showStatusDropdown && (
-              <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-[150px] flex flex-col gap-1 text-xs">
+              <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-37.5 flex flex-col gap-1 text-xs">
                 {['All', 'Awaiting', 'Paid'].map((s) => (
                   <button
                     key={s}
@@ -153,11 +153,10 @@ function AssistingPaymentsPage() {
                       setStatusFilter(s)
                       setShowStatusDropdown(false)
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition cursor-pointer ${
-                      statusFilter === s
-                        ? 'bg-[#E5F3F1] text-[#00726D] font-semibold'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition cursor-pointer ${statusFilter === s
+                      ? 'bg-[#E5F3F1] text-[#00726D] font-semibold'
+                      : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                   >
                     {s}
                   </button>

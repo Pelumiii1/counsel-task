@@ -7,7 +7,7 @@ import Apply from '../../../assets/engaging-lawyers/apply-job.png'
 import { useMyTasks, type TaskItem } from '#/hooks/useTasks'
 import { useEngagingProfile } from '#/hooks/useProfile'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard/')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/')({
   component: DashboardIndex,
 })
 
@@ -16,8 +16,33 @@ function DashboardIndex() {
   const { data: serverTasks, isLoading } = useMyTasks()
   const { data: profile } = useEngagingProfile()
   const [searchQuery, setSearchQuery] = useState('')
+  const [localTasks, setLocalTasks] = useState<any[]>([])
 
-  const tasks = serverTasks && serverTasks.length > 0 ? serverTasks : []
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('counsel_tasks')
+      if (stored) {
+        setLocalTasks(JSON.parse(stored))
+      }
+    } catch (_) { }
+  }, [])
+
+  // Merge serverTasks and localTasks
+  const mergedMap = new Map<string, TaskItem>()
+    ; (serverTasks || []).forEach((st) => {
+      const localMatch = localTasks.find((lt) => String(lt.id) === String(st.id))
+      mergedMap.set(String(st.id), {
+        ...st,
+        ...(localMatch ? { status: localMatch.status || st.status, workers: localMatch.workers || st.workers } : {}),
+      })
+    })
+  localTasks.forEach((lt) => {
+    if (!mergedMap.has(String(lt.id))) {
+      mergedMap.set(String(lt.id), lt)
+    }
+  })
+
+  const tasks = Array.from(mergedMap.values())
   const greetingName = profile?.fullName ? profile.fullName.split(' ')[0] : 'Counsel'
 
   // Filter tasks based on query
@@ -56,7 +81,7 @@ function DashboardIndex() {
         {/* New Task CTA Header Button - visible if tasks exist */}
         {tasks.length > 0 && (
           <Link
-            to="/dashboard/post-job"
+            to="/engaging-dashboard/post-job"
             className="inline-flex h-10 items-center justify-center rounded-lg bg-[#00726d] px-4 font-secondary text-xs sm:text-sm font-medium text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shrink-0"
           >
             New Task
@@ -78,7 +103,7 @@ function DashboardIndex() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-190 justify-center">
             {/* Card 1: Post a Job */}
             <Link
-              to="/dashboard/post-job"
+              to="/engaging-dashboard/post-job"
               className="group flex flex-col bg-white rounded-2xl border border-gray-150 p-4 sm:p-5 shadow-[0_4px_25px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_12px_35px_rgba(0,0,0,0.05)] hover:-translate-y-1 cursor-pointer text-left"
             >
               <div className="flex items-center justify-center overflow-hidden relative h-40 sm:h-44 bg-[#F7F7F7] rounded-lg">
@@ -154,21 +179,21 @@ function DashboardIndex() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search task"
-                className="w-full h-[38px] pl-10 pr-4 rounded-lg border border-gray-200 bg-white text-sm font-normal text-[#242424] placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none"
+                className="w-full h-9.5 pl-10 pr-4 rounded-lg border border-gray-200 bg-white text-sm font-normal text-[#242424] placeholder-gray-400 focus:border-[#00726D]/50 focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none"
               />
             </div>
 
             {/* Filter buttons */}
             <div className="flex flex-wrap gap-2">
-              <button className="inline-flex h-[38px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
+              <button className="inline-flex h-9.5 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
                 <ListFilter className="w-3.5 h-3.5" />
                 <span>Court Location</span>
               </button>
-              <button className="inline-flex h-[38px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
+              <button className="inline-flex h-9.5 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
                 <ListFilter className="w-3.5 h-3.5" />
                 <span>Budget</span>
               </button>
-              <button className="inline-flex h-[38px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
+              <button className="inline-flex h-9.5 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 font-secondary text-xs font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none cursor-pointer">
                 <ListFilter className="w-3.5 h-3.5" />
                 <span>Status</span>
               </button>
@@ -181,7 +206,6 @@ function DashboardIndex() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50 text-[11px] font-bold uppercase tracking-wider text-gray-400 select-none">
-                    <th className="px-6 py-4 text-left w-12" />
                     <th className="px-6 py-4 text-left">Task</th>
                     <th className="px-6 py-4 text-left">Court</th>
                     <th className="px-6 py-4 text-left">Deadline</th>
@@ -200,38 +224,27 @@ function DashboardIndex() {
                           const taskId = String(task.id)
                           if (task.status === 'Open') {
                             navigate({
-                              to: '/dashboard/review-proposals/$taskId',
+                              to: '/engaging-dashboard/review-proposals/$taskId',
                               params: { taskId },
                             })
                           } else if (task.status === 'In Progress') {
                             navigate({
-                              to: '/dashboard/messages/$taskId',
+                              to: '/engaging-dashboard/messages/$taskId',
                               params: { taskId },
                             })
                           } else if (task.status === 'Awaiting review') {
                             navigate({
-                              to: '/dashboard/review-work/$taskId',
+                              to: '/engaging-dashboard/review-work/$taskId',
                               params: { taskId },
                             })
                           } else {
                             navigate({
-                              to: '/dashboard/your-rating/$taskId',
+                              to: '/engaging-dashboard/your-rating/$taskId',
                               params: { taskId },
                             })
                           }
                         }}
                       >
-                        {/* Checkbox cell */}
-                        <td
-                          className="px-6 py-4 text-left"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <input
-                            type="checkbox"
-                            className="rounded border-gray-300 text-[#00726d] focus:ring-[#00726d] cursor-pointer"
-                          />
-                        </td>
-
                         {/* Title & Category */}
                         <td className="px-6 py-4 text-left">
                           <div className="flex flex-col gap-0.5">

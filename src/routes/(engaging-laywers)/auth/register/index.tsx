@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { requireGuestGuard } from '#/lib/authGuard'
 import logoNew from '../../../../assets/logo-new.png'
@@ -46,6 +46,11 @@ function AuthRegisterPage() {
     setStep2Values,
     setStep3Values,
   } = useRegistrationStore()
+
+  useEffect(() => {
+    setStep(1)
+    setShowOtp(false)
+  }, [])
 
   // Local file state for uploads
   const [practisingFeeReceipt, setPractisingFeeReceipt] = useState<File | null>(

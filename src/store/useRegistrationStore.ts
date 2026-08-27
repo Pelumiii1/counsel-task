@@ -133,6 +133,10 @@ export const useRegistrationStore = create<RegistrationState>()(
     }),
     {
       name: 'counsel_registration_store',
+      partialize: (state) => {
+        const { step, showOtp, ...rest } = state
+        return rest
+      },
     },
   ),
 )

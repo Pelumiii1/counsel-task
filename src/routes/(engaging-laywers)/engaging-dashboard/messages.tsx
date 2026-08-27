@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MessagesView } from '#/components/engaging-lawyers/MessagesView'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard/messages')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/messages')({
   component: MessagesPage,
 })
 

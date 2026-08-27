@@ -11,7 +11,7 @@ interface FundTaskSearch {
 }
 
 export const Route = createFileRoute(
-  '/(engaging-laywers)/dashboard/fund-task/$taskId',
+  '/(engaging-laywers)/engaging-dashboard/fund-task/$taskId',
 )({
   validateSearch: (search: Record<string, unknown>): FundTaskSearch => {
     return {
@@ -49,7 +49,7 @@ function FundTaskPage() {
           We couldn't retrieve the details for this task. It may have been deleted or the task ID is invalid.
         </p>
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#00726d] text-white text-sm font-medium hover:bg-[#005c58] transition duration-200 shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -90,7 +90,7 @@ function FundTaskPage() {
     if (selectedProposal) {
       selectProposalMutation.mutate(selectedProposal.id, {
         onSuccess: () => {
-          navigate({ to: '/dashboard' })
+          navigate({ to: '/engaging-dashboard' })
         },
       })
     } else {
@@ -103,7 +103,7 @@ function FundTaskPage() {
       {/* Top Navigation & Header */}
       <div className="flex flex-col gap-3 select-none mb-8">
         <Link
-          to="/dashboard/review-proposals/$taskId"
+          to="/engaging-dashboard/review-proposals/$taskId"
           params={{ taskId: String(task.id) }}
           className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-200 cursor-pointer"
         >

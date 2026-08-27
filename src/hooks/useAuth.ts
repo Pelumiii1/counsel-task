@@ -43,11 +43,11 @@ export function useLogin() {
         } else if (user.role === 'ROLE_ASSISTING_LAWYER') {
           navigate({ to: '/assisting-dashboard' })
         } else {
-          navigate({ to: '/dashboard' })
+          navigate({ to: '/engaging-dashboard' })
         }
       } else {
         toast.success('Logged in successfully!')
-        navigate({ to: '/dashboard' })
+        navigate({ to: '/engaging-dashboard' })
       }
     },
     onError: (error: any) => {

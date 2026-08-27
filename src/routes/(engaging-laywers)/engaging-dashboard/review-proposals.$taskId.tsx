@@ -45,7 +45,7 @@ const formatExperienceSubtitle = (experience?: string): string => {
 }
 
 export const Route = createFileRoute(
-  '/(engaging-laywers)/dashboard/review-proposals/$taskId',
+  '/(engaging-laywers)/engaging-dashboard/review-proposals/$taskId',
 )({
   component: ReviewProposalsPage,
 })
@@ -64,7 +64,7 @@ function ReviewProposalsPage() {
     if (!task || !selectedProposalId) return
 
     navigate({
-      to: '/dashboard/fund-task/$taskId',
+      to: '/engaging-dashboard/fund-task/$taskId',
       params: { taskId: String(task.id) },
       search: {
         lawyerId: String(selectedProposalId),
@@ -86,7 +86,7 @@ function ReviewProposalsPage() {
       <div className="p-12 text-center font-secondary">
         <p className="text-gray-500">Task not found or unavailable.</p>
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="mt-4 inline-flex items-center gap-2 text-[#00726d] font-medium hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -103,7 +103,7 @@ function ReviewProposalsPage() {
       {/* Top Navigation & Header */}
       <div className="flex flex-col gap-3 select-none mb-6">
         <Link
-          to="/dashboard"
+          to="/engaging-dashboard"
           className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-200 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 stroke-2" />

@@ -138,6 +138,6 @@ export function dashboardPathForRole(role?: string): string {
     case 'ROLE_ASSISTING_LAWYER':
       return '/assisting-dashboard'
     default:
-      return '/dashboard'
+      return '/engaging-dashboard'
   }
 }

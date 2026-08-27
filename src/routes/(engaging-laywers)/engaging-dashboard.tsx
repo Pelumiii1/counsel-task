@@ -1,13 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createFileRoute,
   Outlet,
   Link,
   useLocation,
-  redirect,
   useNavigate,
 } from '@tanstack/react-router'
-import { getAuthPayload, requireAuthGuard, storeSessionToken } from '#/lib/authGuard'
+import { requireAuthGuard, storeSessionToken } from '#/lib/authGuard'
 import { Bell, ChevronsUpDown, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import LogoWhite from '#/assets/logo-white.png'
@@ -15,7 +14,7 @@ import { useEngagingProfile } from '#/hooks/useProfile'
 import { useConversations } from '#/hooks/useMessages'
 import { useNotifications } from '#/hooks/useNotifications'
 
-export const Route = createFileRoute('/(engaging-laywers)/dashboard')({
+export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard')({
   beforeLoad: () => {
     requireAuthGuard()
   },
@@ -27,7 +26,13 @@ function DashboardLayout() {
   const navigate = useNavigate()
   const { data: profile } = useEngagingProfile()
 
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
   const handleLogout = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmLogout = () => {
     storeSessionToken(null)
     navigate({ to: '/auth/login' })
   }
@@ -35,7 +40,9 @@ function DashboardLayout() {
   const { data: notifications } = useNotifications('engaging')
   const prevUnreadNotifsRef = useRef<number | null>(null)
 
-  const unreadMessagesCount = (conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+  const unreadMessagesCount = (conversations || [])
+    .filter((c) => !c.taskStatus || c.taskStatus.toLowerCase() !== 'completed')
+    .reduce((sum, c) => sum + (c.unreadCount || 0), 0)
   const unreadNotificationsCount = (notifications || []).filter((n) => !n.isRead).length
   const hasUnreadNotifications = unreadNotificationsCount > 0 || unreadMessagesCount > 0
 
@@ -68,12 +75,12 @@ function DashboardLayout() {
   }
 
   const menuItems = [
-    { label: 'Task', path: '/dashboard' },
-    { label: 'Messages', path: '/dashboard/messages', badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
-    { label: 'Payments', path: '/dashboard/payments' },
-    { label: 'Notification', path: '/dashboard/notifications', badge: unreadNotificationsCount > 0 ? unreadNotificationsCount : undefined, hasDot: unreadNotificationsCount > 0 },
-    { label: 'Ratings', path: '/dashboard/ratings' },
-    { label: 'Account Settings', path: '/dashboard/settings' },
+    { label: 'Task', path: '/engaging-dashboard' },
+    { label: 'Messages', path: '/engaging-dashboard/messages', badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
+    { label: 'Payments', path: '/engaging-dashboard/payments' },
+    { label: 'Notification', path: '/engaging-dashboard/notifications', badge: unreadNotificationsCount > 0 ? unreadNotificationsCount : undefined, hasDot: unreadNotificationsCount > 0 },
+    { label: 'Ratings', path: '/engaging-dashboard/ratings' },
+    { label: 'Account Settings', path: '/engaging-dashboard/settings' },
   ]
 
   return (
@@ -102,10 +109,10 @@ function DashboardLayout() {
             {menuItems.map((item) => {
               // Exact matches or falls back to active status
               const active =
-                item.path === '/dashboard'
-                  ? location.pathname === '/dashboard' ||
-                  location.pathname === '/dashboard/' ||
-                  location.pathname === '/dashboard/post-job'
+                item.path === '/engaging-dashboard'
+                  ? location.pathname === '/engaging-dashboard' ||
+                  location.pathname === '/engaging-dashboard/' ||
+                  location.pathname === '/engaging-dashboard/post-job'
                   : isActive(item.path)
 
               return (
@@ -132,26 +139,41 @@ function DashboardLayout() {
           </nav>
         </div>
 
-        {/* Bottom Profile Footer Section */}
-        <Link
-          to="/dashboard/settings"
-          className="p-4 border-t border-[#0d2235] flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer no-underline text-inherit"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
-              {initials}
+        {/* Bottom Section: Profile Footer + Log Out */}
+        <div className="flex flex-col border-t border-[#0d2235]">
+          {/* Profile Footer */}
+          <Link
+            to="/engaging-dashboard/settings"
+            className="p-4 flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer no-underline text-inherit"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
+                {initials}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
+                  {fullName}
+                </span>
+                <span className="text-[10px] text-gray-400 font-normal leading-tight">
+                  {roleName}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
-                {fullName}
-              </span>
-              <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                {roleName}
-              </span>
-            </div>
+            <ChevronsUpDown className="w-4 h-4 text-gray-400" />
+          </Link>
+
+          {/* Log Out Button */}
+          <div className="px-3 pt-1 pb-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-2.5 w-full h-10 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-red-400 transition duration-100 cursor-pointer group"
+            >
+              <LogOut className="w-4 h-4 stroke-[1.8] group-hover:text-red-400 transition" />
+              <span>Log Out</span>
+            </button>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-gray-400" />
-        </Link>
+        </div>
       </aside>
 
       {/* Right Side: Navbar + Viewport Scroll Area */}
@@ -168,7 +190,7 @@ function DashboardLayout() {
             </Link>
 
             <Link
-              to="/dashboard/notifications"
+              to="/engaging-dashboard/notifications"
               className="text-gray-500 hover:text-gray-700 transition relative focus:outline-none cursor-pointer p-1.5 rounded-lg hover:bg-gray-100"
               aria-label="Notifications"
             >
@@ -182,21 +204,12 @@ function DashboardLayout() {
             </Link>
 
             <Link
-              to="/dashboard/settings"
+              to="/engaging-dashboard/settings"
               className="w-10 h-10 rounded-full bg-[#00726d]/10 text-[#00726d] border border-[#00726d]/20 flex items-center justify-center font-bold text-xs cursor-pointer select-none hover:bg-[#00726d]/20 transition"
               aria-label="Account Settings"
             >
               {initials}
             </Link>
-
-            <button
-              onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-200"
-            >
-              <LogOut className="w-4.5 h-4.5 stroke-[1.8]" />
-            </button>
           </div>
         </header>
 
@@ -205,6 +218,41 @@ function DashboardLayout() {
           <Outlet />
         </div>
       </div>
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowLogoutModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <h2 className="font-primary text-xl font-semibold text-[#00726D]">Log out?</h2>
+              <p className="mt-2 font-secondary text-sm text-gray-500 leading-relaxed">
+                Are you sure you want to log out of your account? You'll need to sign in again to access your account.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="h-10 px-5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="h-10 px-5 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-sm font-medium transition cursor-pointer active:scale-[0.98]"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

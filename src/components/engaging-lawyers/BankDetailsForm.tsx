@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from '@tanstack/react-router'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface BankDetailsFormProps {
@@ -130,29 +131,41 @@ export function BankDetailsForm({
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex items-center justify-end gap-3 mt-8 select-none">
-        <button
-          type="button"
-          onClick={onBack}
-          className="inline-flex h-11 items-center gap-2 rounded-lg border border-gray-200 bg-white px-6 font-secondary text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition cursor-pointer"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Previous</span>
-        </button>
+      {/* Buttons & Login Link */}
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
+        <p className="text-xs sm:text-sm text-gray-500 font-normal">
+          Already have an account?{' '}
+          <Link
+            to="/auth/login"
+            className="font-semibold text-[#00726D] hover:underline"
+          >
+            Log in
+          </Link>
+        </p>
 
-        <button
-          type="submit"
-          disabled={isLoading || !bank || accountNumber.length < 10}
-          className={`inline-flex h-11 items-center gap-2 rounded-lg px-6 font-secondary text-xs sm:text-sm font-semibold text-white transition active:scale-[0.98] cursor-pointer ${
-            bank && accountNumber.length === 10 && !isLoading
-              ? 'bg-[#00726d] hover:bg-[#005c58]'
-              : 'bg-gray-300 cursor-not-allowed'
-          }`}
-        >
-          <span>{isLoading ? 'Submitting Details...' : 'Continue'}</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-gray-200 bg-white px-6 font-secondary text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+
+          <button
+            type="submit"
+            disabled={isLoading || !bank || accountNumber.length < 10}
+            className={`inline-flex h-11 items-center gap-2 rounded-lg px-6 font-secondary text-xs sm:text-sm font-semibold text-white transition active:scale-[0.98] cursor-pointer ${
+              bank && accountNumber.length === 10 && !isLoading
+                ? 'bg-[#00726d] hover:bg-[#005c58]'
+                : 'bg-gray-300 cursor-not-allowed'
+            }`}
+          >
+            <span>{isLoading ? 'Submitting Details...' : 'Continue'}</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </form>
   )

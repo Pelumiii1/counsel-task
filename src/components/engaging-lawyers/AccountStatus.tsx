@@ -1,11 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import { useRegistrationStore } from '../../store/useRegistrationStore'
-import { CheckCircle2, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 export function AccountStatus() {
-  const { fullName, email, firm, bank, accountNumber, resetRegistration } =
-    useRegistrationStore()
-
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -42,30 +38,16 @@ export function AccountStatus() {
           {/* Card Description */}
           <p className="mt-3 font-secondary text-[12px] leading-[1.6] text-gray-700 text-center max-w-110">
             An administrator is checking your Call to Bar record, enrolment
-            number, and submitted documents for <strong>{fullName || 'your account'}</strong>. You'll be able to post and accept tasks as
+            number, and submitted documents. You'll be able to post and accept tasks as
             soon as you're approved.
           </p>
 
-          {/* User Details Summary Chip */}
-          {email && (
-            <div className="mt-5 bg-gray-50 border border-gray-150 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-600">
-              <span>Counsel: <strong className="text-gray-900">{fullName}</strong></span>
-              {firm && <span>• Firm: <strong className="text-gray-900">{firm}</strong></span>}
-              <span>• Email: <strong className="text-gray-900">{email}</strong></span>
-              {bank && <span>• Bank: <strong className="text-gray-900">{bank}</strong></span>}
-            </div>
-          )}
+
 
           {/* Horizontal Stepper Progress */}
           <div className="mt-12 w-full max-w-125 px-2 relative">
-            <div className="absolute top-1.25 left-[12%] right-[12%] -z-10 flex justify-between gap-4">
-              <div className="flex-1 border-t border-dashed border-[#00726D]" />
-              <div className="flex-1 border-t border-dashed border-[#00726D]" />
-              <div className="flex-1 border-t border-dashed border-gray-200" />
-            </div>
-
             {/* Nodes Container */}
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-center">
               {/* Step 1 */}
               <div className="flex flex-col items-center w-20 sm:w-24">
                 <div className="size-3 rounded-full bg-[#00726D]" />
@@ -73,6 +55,8 @@ export function AccountStatus() {
                   Account Created
                 </span>
               </div>
+
+              <div className='w-9.25 h-px bg-[#AAAAAA80]' />
 
               {/* Step 2 */}
               <div className="flex flex-col items-center w-20 sm:w-24">
@@ -82,6 +66,8 @@ export function AccountStatus() {
                 </span>
               </div>
 
+              <div className='w-9.25 h-px bg-[#AAAAAA80]' />
+
               {/* Step 3 */}
               <div className="flex flex-col items-center w-20 sm:w-24">
                 <div className="size-3 rounded-full bg-[#CF6A52]" />
@@ -89,6 +75,8 @@ export function AccountStatus() {
                   Under Review
                 </span>
               </div>
+
+              <div className='w-9.25 h-px bg-[#AAAAAA80]' />
 
               {/* Step 4 */}
               <div className="flex flex-col items-center w-20 sm:w-24">
@@ -109,21 +97,6 @@ export function AccountStatus() {
               <span>Go to Login</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-
-            <Link
-              to="/dashboard"
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium px-5 transition active:scale-[0.98] cursor-pointer"
-            >
-              <span>Explore Dashboard</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={resetRegistration}
-              className="text-xs text-gray-400 hover:text-gray-700 px-3 py-2 transition cursor-pointer"
-            >
-              Start New Registration
-            </button>
           </div>
         </div>
       </div>
