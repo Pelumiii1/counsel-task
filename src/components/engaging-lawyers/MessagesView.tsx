@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
-  Send,
   FileText,
   Plus,
   Loader2,
@@ -361,7 +360,7 @@ export function MessagesView({
                 {isCompleted ? (
                   <div className="py-2.5 px-3.5 border-b border-gray-100 flex items-center justify-between gap-4 select-none shrink-0 bg-[#E6F1F0]/70 rounded-xl my-1">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#00726D] stroke-[2]" />
+                      <CheckCircle2 className="w-4 h-4 text-[#00726D] stroke-2" />
                       <span className="text-xs sm:text-[13.5px] font-medium text-[#00726D] font-secondary">
                         This task has been completed and approved
                       </span>
@@ -374,7 +373,7 @@ export function MessagesView({
                   isAwaitingReview ? (
                     <div className="py-2.5 px-3 border-b border-gray-100 flex items-center justify-between gap-4 select-none shrink-0 bg-[#FDF0EC]/60 rounded-xl my-1">
                       <div className="flex items-center gap-2">
-                        <Hourglass className="w-4 h-4 text-[#D07054] stroke-[2]" />
+                        <Hourglass className="w-4 h-4 text-[#D07054] stroke-2" />
                         <span className="text-xs sm:text-[13.5px] font-medium text-[#A24D36] font-secondary">
                           Task is awaiting completion confirmation from engaging counsel
                         </span>
@@ -472,14 +471,14 @@ export function MessagesView({
 
                 {/* Input text block */}
                 {isCompleted ? (
-                  <div className="pt-3 border-t border-gray-100 flex items-center justify-center p-3 rounded-full bg-gray-50 border border-gray-200/70 select-none text-center">
+                  <div className="pt-3 border-t flex items-center justify-center p-3 rounded-full bg-gray-50 border border-gray-200/70 select-none text-center">
                     <span className="text-xs sm:text-[13px] text-gray-500 font-normal flex items-center gap-2">
                       <LockIcon className="w-4 h-4 text-gray-400" />
                       Messaging is disabled because this task has been completed.
                     </span>
                   </div>
                 ) : role === 'assisting' && isAwaitingReview ? (
-                  <div className="pt-3 border-t border-gray-100 flex items-center justify-center p-3 rounded-full bg-gray-50 border border-gray-200/70 select-none text-center">
+                  <div className="pt-3 border-t border-gray-100 flex items-center justify-center p-3 rounded-full bg-gray-50 border select-none text-center">
                     <span className="text-xs sm:text-[13px] text-gray-500 font-normal flex items-center gap-2">
                       <LockIcon className="w-4 h-4 text-gray-400" />
                       Messaging is disabled while the task is awaiting review by engaging counsel.
