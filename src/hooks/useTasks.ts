@@ -21,6 +21,8 @@ export interface TaskItem {
   createdById?: number
   status: 'Open' | 'In Progress' | 'Awaiting review' | 'Completed' | string
   createdAt?: string
+  updatedAt?: string
+  paidAt?: string
 }
 
 export interface CreateTaskPayload {

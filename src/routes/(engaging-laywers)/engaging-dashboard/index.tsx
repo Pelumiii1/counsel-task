@@ -27,13 +27,13 @@ function DashboardIndex() {
     } catch (_) { }
   }, [])
 
-  // Merge serverTasks and localTasks
+  // Merge serverTasks and localTasks (server is source of truth)
   const mergedMap = new Map<string, TaskItem>()
     ; (serverTasks || []).forEach((st) => {
       const localMatch = localTasks.find((lt) => String(lt.id) === String(st.id))
       mergedMap.set(String(st.id), {
+        ...(localMatch || {}),
         ...st,
-        ...(localMatch ? { status: localMatch.status || st.status, workers: localMatch.workers || st.workers } : {}),
       })
     })
   localTasks.forEach((lt) => {
@@ -42,7 +42,11 @@ function DashboardIndex() {
     }
   })
 
-  const tasks = Array.from(mergedMap.values())
+  const tasks = Array.from(mergedMap.values()).sort((a, b) => {
+    const timeA = new Date(a.updatedAt || a.paidAt || a.createdAt || 0).getTime()
+    const timeB = new Date(b.updatedAt || b.paidAt || b.createdAt || 0).getTime()
+    return timeB - timeA
+  })
   const greetingName = profile?.fullName ? profile.fullName.split(' ')[0] : 'Counsel'
 
   // Filter tasks based on query

@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { Lock, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
+import { Lock, ArrowLeft, AlertCircle, Loader2, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTaskById } from '#/hooks/useTasks'
-import { useTaskProposals, useSelectProposal } from '#/hooks/useProposals'
+import { useTaskProposals } from '#/hooks/useProposals'
+import { usePaystackFundTask } from '#/hooks/usePayment'
+import { launchPaystackPayment } from '#/lib/paystack'
+import { getAuthPayload } from '#/lib/authGuard'
 import { FundTaskSkeleton } from '#/components/engaging-lawyers/FundTaskSkeleton'
 
 interface FundTaskSearch {
@@ -28,9 +31,10 @@ function FundTaskPage() {
 
   const { data: task, isLoading: isTaskLoading, isError: isTaskError } = useTaskById(taskId)
   const { data: proposals, isLoading: isProposalsLoading } = useTaskProposals(taskId)
-  const selectProposalMutation = useSelectProposal()
+  const paystackFundMutation = usePaystackFundTask()
 
   const [selectedMethod, setSelectedMethod] = useState<'card' | 'bank'>('card')
+  const [isOpeningPaystack, setIsOpeningPaystack] = useState(false)
 
   if (isTaskLoading || isProposalsLoading) {
     return <FundTaskSkeleton />
@@ -84,17 +88,65 @@ function FundTaskPage() {
   const lawyerFullName = selectedProposal?.name || 'Selected Counsel'
   const lawyerFirstName = selectedProposal?.name ? selectedProposal.name.split(' ')[0] : 'Lawyer'
 
+  const isPending = isOpeningPaystack || paystackFundMutation.isPending
+
   const handleFund = async () => {
     if (!task) return
 
-    if (selectedProposal) {
-      selectProposalMutation.mutate(selectedProposal.id, {
-        onSuccess: () => {
-          navigate({ to: '/engaging-dashboard' })
+    if (!selectedProposal) {
+      toast.error('No proposal selected. Please select a proposal to fund.')
+      return
+    }
+
+    const auth = getAuthPayload()
+    const userEmail = auth?.email || auth?.sub || 'client@counseltask.com'
+    const grossAmountInKobo = Math.round(grossFee * 100)
+
+    if (grossAmountInKobo <= 0) {
+      toast.error('Invalid task fee amount.')
+      return
+    }
+
+    try {
+      setIsOpeningPaystack(true)
+
+      await launchPaystackPayment({
+        email: userEmail,
+        amountInKobo: grossAmountInKobo,
+        channels: selectedMethod === 'card' ? ['card'] : ['bank', 'bank_transfer', 'ussd', 'qr'],
+        metadata: {
+          taskId: task.id,
+          proposalId: selectedProposal.id,
+          taskTitle: task.title,
+          lawyerName: lawyerFullName,
+        },
+        onSuccess: (paystackRes) => {
+          setIsOpeningPaystack(false)
+          // Verify with backend and fund the task
+          paystackFundMutation.mutate(
+            {
+              reference: paystackRes.reference,
+              taskId: task.id,
+              proposalId: selectedProposal.id,
+              channel: selectedMethod,
+            },
+            {
+              onSuccess: () => {
+                navigate({ to: '/engaging-dashboard' })
+              },
+            },
+          )
+        },
+        onClose: () => {
+          setIsOpeningPaystack(false)
+          toast.info('Payment checkout window was cancelled.')
         },
       })
-    } else {
-      toast.error('No proposal selected. Please select a proposal to fund.')
+    } catch (err: any) {
+      setIsOpeningPaystack(false)
+      const errorMsg = err?.message || 'Unable to open Paystack payment modal.'
+      toast.error(errorMsg)
+      console.error('Paystack Launch Error:', err)
     }
   }
 
@@ -113,7 +165,7 @@ function FundTaskPage() {
           Fund the task
         </h1>
         <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed max-w-2xl">
-          Review fee breakdown and select your payment method to escrow funds for this task.
+          Review fee breakdown and complete your escrow deposit securely with Paystack.
         </p>
       </div>
 
@@ -190,7 +242,7 @@ function FundTaskPage() {
               Payment Method
             </h2>
             <p className="text-xs text-gray-500 font-medium">
-              Selected for: {task.title}
+              Powered by Paystack
             </p>
           </div>
 
@@ -198,71 +250,89 @@ function FundTaskPage() {
             {/* Debit/Credit Card */}
             <div
               onClick={() => setSelectedMethod('card')}
-              className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition duration-200 select-none ${selectedMethod === 'card'
+              className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition duration-200 select-none ${
+                selectedMethod === 'card'
                   ? 'border-[#00726d] bg-[#f0faf9]/50 shadow-[0_2px_12px_rgba(0,114,109,0.02)]'
                   : 'border-gray-200 hover:border-gray-300'
-                }`}
+              }`}
             >
               <div
-                className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${selectedMethod === 'card'
+                className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${
+                  selectedMethod === 'card'
                     ? 'border-[#00726d]'
                     : 'border-gray-350'
-                  }`}
+                }`}
               >
                 {selectedMethod === 'card' && (
                   <div className="w-2.5 h-2.5 rounded-full bg-[#00726d]" />
                 )}
               </div>
               <span
-                className={`text-xs font-semibold ${selectedMethod === 'card'
+                className={`text-xs font-semibold ${
+                  selectedMethod === 'card'
                     ? 'text-[#00726d]'
                     : 'text-gray-500 font-medium'
-                  }`}
+                }`}
               >
-                Debit/Credit Card
+                Debit / Credit Card (Paystack)
               </span>
             </div>
 
             {/* Bank Transfer */}
             <div
               onClick={() => setSelectedMethod('bank')}
-              className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition duration-200 select-none ${selectedMethod === 'bank'
+              className={`border rounded-xl p-4 flex items-center gap-3 cursor-pointer transition duration-200 select-none ${
+                selectedMethod === 'bank'
                   ? 'border-[#00726d] bg-[#f0faf9]/50 shadow-[0_2px_12px_rgba(0,114,109,0.02)]'
                   : 'border-gray-200 hover:border-gray-300'
-                }`}
+              }`}
             >
               <div
-                className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${selectedMethod === 'bank'
+                className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${
+                  selectedMethod === 'bank'
                     ? 'border-[#00726d]'
                     : 'border-gray-350'
-                  }`}
+                }`}
               >
                 {selectedMethod === 'bank' && (
                   <div className="w-2.5 h-2.5 rounded-full bg-[#00726d]" />
                 )}
               </div>
               <span
-                className={`text-xs font-semibold ${selectedMethod === 'bank'
+                className={`text-xs font-semibold ${
+                  selectedMethod === 'bank'
                     ? 'text-[#00726d]'
                     : 'text-gray-500 font-medium'
-                  }`}
+                }`}
               >
-                Bank Transfer
+                Bank Transfer / USSD (Paystack)
               </span>
             </div>
+          </div>
+
+          {/* Security reassurance banner */}
+          <div className="flex items-center gap-2 text-[11px] text-gray-500 bg-gray-50 rounded-lg p-2.5 border border-gray-150">
+            <ShieldCheck className="w-4 h-4 text-[#00726d] shrink-0" />
+            <span>256-bit encrypted checkout via Paystack Payment Gateway</span>
           </div>
 
           {/* Action button */}
           <div className="flex justify-end pt-4 border-t border-gray-100 select-none mt-2">
             <button
               onClick={handleFund}
-              disabled={selectProposalMutation.isPending}
+              disabled={isPending}
               className="inline-flex h-11 items-center justify-center rounded-lg bg-[#00726d] px-6 font-secondary text-sm font-semibold text-white transition hover:bg-[#005c58] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#00726d]/20 cursor-pointer shadow-sm whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed gap-2"
             >
-              {selectProposalMutation.isPending && (
+              {isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
               )}
-              <span>Fund {formatCurrency(grossFee)}</span>
+              <span>
+                {paystackFundMutation.isPending
+                  ? 'Verifying Payment...'
+                  : isOpeningPaystack
+                    ? 'Connecting to Paystack...'
+                    : `Fund ${formatCurrency(grossFee)} with Paystack`}
+              </span>
             </button>
           </div>
         </div>
