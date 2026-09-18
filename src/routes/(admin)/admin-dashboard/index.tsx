@@ -131,9 +131,8 @@ function StatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
-        styles[type] || styles.neutral
-      }`}
+      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${styles[type] || styles.neutral
+        }`}
     >
       {status}
     </span>
@@ -351,7 +350,7 @@ function AdminOverviewPage() {
 
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-6">
             {/* Donut / Pie */}
-            <div className="w-[200px] h-[200px] sm:w-[220px] sm:h-[220px] shrink-0">
+            <div className="w-50 h-50 sm:w-55 sm:h-55 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -391,60 +390,6 @@ function AdminOverviewPage() {
             </div>
           </div>
         </div>
-
-        {/* Lawyers Chart */}
-        <div className="lg:col-span-5 rounded-2xl border border-gray-200/80 bg-white p-6 sm:p-7 shadow-xs flex flex-col justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-[#101828]">
-              Lawyers Chart
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[#475467]">
-              Lawyers by Category
-            </p>
-          </div>
-
-          <div className="mt-6 flex flex-col items-center">
-            {/* Donut / Pie */}
-            <div className="w-[180px] h-[180px] sm:w-[200px] sm:h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={lawyersCategoryPie}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={85}
-                    dataKey="value"
-                    labelLine={false}
-                    label={renderLawyersPieLabel}
-                    stroke="#ffffff"
-                    strokeWidth={2}
-                  >
-                    {lawyersCategoryPie.map((entry, idx) => (
-                      <Cell key={`lawyer-cell-${idx}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Legend List */}
-            <div className="w-full mt-6 space-y-3 text-sm">
-              {lawyersCategoryPie.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between text-xs sm:text-sm"
-                >
-                  <span className="text-[#344054] font-normal">
-                    {item.name}
-                  </span>
-                  <span className="text-[#101828] font-medium">
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ── Revenue Trend Card ── */}
@@ -458,7 +403,7 @@ function AdminOverviewPage() {
           </p>
         </div>
 
-        <div className="mt-6 w-full h-[280px] sm:h-[320px]">
+        <div className="mt-6 w-full h-70 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={revenueTrend}

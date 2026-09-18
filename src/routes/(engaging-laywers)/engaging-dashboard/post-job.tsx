@@ -3,14 +3,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Upload,
   Info,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Link as LinkIcon,
-  RotateCcw,
-  RotateCw,
 } from 'lucide-react'
+import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import {
   inputClass,
   labelClass,
@@ -135,83 +129,12 @@ function PostJobPage() {
             <span className="text-sm font-semibold text-[#080a0f]">
               Service Description {requiredMark}
             </span>
-            <div className="w-full rounded-lg border border-[#dedfe3] bg-white overflow-hidden focus-within:border-[#00726D]/50 focus-within:ring-2 focus-within:ring-[#00726D]/10">
-              {/* Mock editor actions bar */}
-              <div className="h-10 border-b border-[#dedfe3] bg-[#f9fafb] px-3 flex items-center gap-4 text-gray-500 select-none">
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <Bold className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <Italic className="w-4 h-4" />
-                </button>
-                <div className="w-px h-5 bg-gray-200" />
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <ListOrdered className="w-4 h-4" />
-                </button>
-                <div className="w-px h-5 bg-gray-200" />
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  {/* Clean SVG reload replacement since rotate-left/right isn't simple */}
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89"
-                    />
-                  </svg>
-                </button>
-                <div className="w-px h-5 bg-gray-200" />
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1 hover:text-black hover:bg-gray-200/50 rounded transition cursor-pointer"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Textarea body */}
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter a description..."
-                className="w-full h-32 px-4 py-3 text-sm font-normal text-[#242424] placeholder-gray-400 focus:outline-none resize-none"
-              />
-            </div>
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Enter a description..."
+              minHeight="128px"
+            />
           </div>
 
           {/* Row 1: Practice Area + Court Location */}

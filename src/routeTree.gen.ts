@@ -18,6 +18,7 @@ import { Route as adminAdminDashboardAnnouncementsRouteImport } from './routes/(
 import { Route as adminAdminDashboardFinanceRouteImport } from './routes/(admin)/admin-dashboard/finance'
 import { Route as adminAdminDashboardLawyersRouteImport } from './routes/(admin)/admin-dashboard/lawyers'
 import { Route as adminAdminDashboardReportRouteImport } from './routes/(admin)/admin-dashboard/report'
+import { Route as adminAdminDashboardRolesRouteImport } from './routes/(admin)/admin-dashboard/roles'
 import { Route as adminAdminDashboardTasksRouteImport } from './routes/(admin)/admin-dashboard/tasks'
 import { Route as assistingLawyersAssistingDashboardIndexRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/index'
 import { Route as assistingLawyersAssistingDashboardMessagesRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard/messages'
@@ -99,6 +100,12 @@ const adminAdminDashboardReportRoute =
   adminAdminDashboardReportRouteImport.update({
     id: '/report',
     path: '/report',
+    getParentRoute: () => adminAdminDashboardRoute,
+  } as any)
+const adminAdminDashboardRolesRoute =
+  adminAdminDashboardRolesRouteImport.update({
+    id: '/roles',
+    path: '/roles',
     getParentRoute: () => adminAdminDashboardRoute,
   } as any)
 const adminAdminDashboardTasksRoute =
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
   '/admin-dashboard/lawyers': typeof adminAdminDashboardLawyersRouteWithChildren
   '/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/admin-dashboard/roles': typeof adminAdminDashboardRolesRoute
   '/admin-dashboard/tasks': typeof adminAdminDashboardTasksRouteWithChildren
   '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
   '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
   '/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/admin-dashboard/roles': typeof adminAdminDashboardRolesRoute
   '/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
   '/assisting-dashboard/payments': typeof assistingLawyersAssistingDashboardPaymentsRoute
@@ -369,6 +378,7 @@ export interface FileRoutesById {
   '/(admin)/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
   '/(admin)/admin-dashboard/lawyers': typeof adminAdminDashboardLawyersRouteWithChildren
   '/(admin)/admin-dashboard/report': typeof adminAdminDashboardReportRoute
+  '/(admin)/admin-dashboard/roles': typeof adminAdminDashboardRolesRoute
   '/(admin)/admin-dashboard/tasks': typeof adminAdminDashboardTasksRouteWithChildren
   '/(assisting-lawyers)/assisting-dashboard/messages': typeof assistingLawyersAssistingDashboardMessagesRouteWithChildren
   '/(assisting-lawyers)/assisting-dashboard/notifications': typeof assistingLawyersAssistingDashboardNotificationsRoute
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/finance'
     | '/admin-dashboard/lawyers'
     | '/admin-dashboard/report'
+    | '/admin-dashboard/roles'
     | '/admin-dashboard/tasks'
     | '/assisting-dashboard/messages'
     | '/assisting-dashboard/notifications'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/admin-dashboard/announcements'
     | '/admin-dashboard/finance'
     | '/admin-dashboard/report'
+    | '/admin-dashboard/roles'
     | '/assisting-dashboard/messages'
     | '/assisting-dashboard/notifications'
     | '/assisting-dashboard/payments'
@@ -489,6 +501,7 @@ export interface FileRouteTypes {
     | '/(admin)/admin-dashboard/finance'
     | '/(admin)/admin-dashboard/lawyers'
     | '/(admin)/admin-dashboard/report'
+    | '/(admin)/admin-dashboard/roles'
     | '/(admin)/admin-dashboard/tasks'
     | '/(assisting-lawyers)/assisting-dashboard/messages'
     | '/(assisting-lawyers)/assisting-dashboard/notifications'
@@ -594,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/report'
       fullPath: '/admin-dashboard/report'
       preLoaderRoute: typeof adminAdminDashboardReportRouteImport
+      parentRoute: typeof adminAdminDashboardRoute
+    }
+    '/(admin)/admin-dashboard/roles': {
+      id: '/(admin)/admin-dashboard/roles'
+      path: '/roles'
+      fullPath: '/admin-dashboard/roles'
+      preLoaderRoute: typeof adminAdminDashboardRolesRouteImport
       parentRoute: typeof adminAdminDashboardRoute
     }
     '/(admin)/admin-dashboard/tasks': {
@@ -847,6 +867,7 @@ interface adminAdminDashboardRouteChildren {
   adminAdminDashboardFinanceRoute: typeof adminAdminDashboardFinanceRoute
   adminAdminDashboardLawyersRoute: typeof adminAdminDashboardLawyersRouteWithChildren
   adminAdminDashboardReportRoute: typeof adminAdminDashboardReportRoute
+  adminAdminDashboardRolesRoute: typeof adminAdminDashboardRolesRoute
   adminAdminDashboardTasksRoute: typeof adminAdminDashboardTasksRouteWithChildren
   adminAdminDashboardIndexRoute: typeof adminAdminDashboardIndexRoute
 }
@@ -856,6 +877,7 @@ const adminAdminDashboardRouteChildren: adminAdminDashboardRouteChildren = {
   adminAdminDashboardFinanceRoute: adminAdminDashboardFinanceRoute,
   adminAdminDashboardLawyersRoute: adminAdminDashboardLawyersRouteWithChildren,
   adminAdminDashboardReportRoute: adminAdminDashboardReportRoute,
+  adminAdminDashboardRolesRoute: adminAdminDashboardRolesRoute,
   adminAdminDashboardTasksRoute: adminAdminDashboardTasksRouteWithChildren,
   adminAdminDashboardIndexRoute: adminAdminDashboardIndexRoute,
 }

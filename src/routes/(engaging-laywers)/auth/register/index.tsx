@@ -6,14 +6,12 @@ import Seal from '../../../../assets/engaging-lawyers/counseltask-verification-s
 import { AccountDetailsForm } from '#/components/engaging-lawyers/AccountDetailsForm'
 import { OtpConfirmationForm } from '#/components/engaging-lawyers/OtpConfirmationForm'
 import { ProfessionalCredentialsForm } from '#/components/engaging-lawyers/ProfessionalCredentialsForm'
-import { BankDetailsForm } from '#/components/engaging-lawyers/BankDetailsForm'
 import { AccountStatus } from '#/components/engaging-lawyers/AccountStatus'
 import { useRegistrationStore } from '#/store/useRegistrationStore'
 import {
   useInitiateRegistration,
   useVerifyOtp,
   useSubmitCredentials,
-  useSubmitBankDetails,
 } from '#/hooks/useRegistration'
 
 export const Route = createFileRoute('/(engaging-laywers)/auth/register/')({
@@ -37,14 +35,11 @@ function AuthRegisterPage() {
     serverGeneratedOtp,
     callToBarDate,
     enrolmentNumber,
-    bank,
-    accountNumber,
     setStep,
     setShowOtp,
     setStep1Values,
     setOtp,
     setStep2Values,
-    setStep3Values,
   } = useRegistrationStore()
 
   useEffect(() => {
@@ -64,7 +59,6 @@ function AuthRegisterPage() {
   const initiateMutation = useInitiateRegistration()
   const verifyOtpMutation = useVerifyOtp()
   const credentialsMutation = useSubmitCredentials()
-  const bankDetailsMutation = useSubmitBankDetails()
 
   // Handle Step 1 Submit (Initiate)
   const handleProceedStep1 = () => {
@@ -107,21 +101,6 @@ function AuthRegisterPage() {
       practisingFeeReceiptUrl: practisingFeeReceipt?.name || 'Practising_Fee_Receipt.pdf',
       governmentIdUrl: governmentId?.name || 'NIN_Slip.pdf',
       supportingCredentialsUrl: supportingCredentials?.name,
-    })
-  }
-
-  // Handle Step 3 Submit (Bank Details)
-  const handleProceedStep3 = (bankData: {
-    bank: string
-    accountNumber: string
-    accountName: string
-  }) => {
-    setStep3Values(bankData)
-    bankDetailsMutation.mutate({
-      email,
-      bankName: bankData.bank,
-      accountNumber: bankData.accountNumber,
-      accountName: bankData.accountName,
     })
   }
 
@@ -191,18 +170,7 @@ function AuthRegisterPage() {
             />
           )}
 
-          {step === 3 && (
-            <BankDetailsForm
-              fullName={fullName}
-              initialBank={bank}
-              initialAccountNumber={accountNumber}
-              isLoading={bankDetailsMutation.isPending}
-              onBack={() => setStep(2)}
-              onProceed={handleProceedStep3}
-            />
-          )}
-
-          {step === 4 && <AccountStatus />}
+          {step === 3 && <AccountStatus />}
         </div>
       </section>
     </main>

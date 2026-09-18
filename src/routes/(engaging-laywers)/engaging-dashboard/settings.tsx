@@ -84,7 +84,7 @@ function SettingsPage() {
           {/* Law Firm */}
           <div className="flex flex-col items-start gap-2.5">
             <label className="text-xs sm:text-[13px] font-bold text-gray-800 font-secondary select-none">
-              Law Firm / Chambers (optional){' '}
+              Law Firm / Chambers{' '}
               <span className="text-red-500">*</span>
             </label>
             <input

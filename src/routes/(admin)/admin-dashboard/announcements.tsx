@@ -6,18 +6,13 @@ import {
   SlidersHorizontal,
   X,
   ArrowLeft,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Link as LinkIcon,
-  RotateCcw,
-  RotateCw,
   Sparkles,
   Loader2,
 } from 'lucide-react'
+import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { toast } from 'sonner'
 import { apiClient } from '#/lib/apiClient'
+import { useHasPermission } from '#/hooks/useAdminRoles'
 
 export const Route = createFileRoute('/(admin)/admin-dashboard/announcements')({
   component: AdminAnnouncementsPage,
@@ -43,7 +38,7 @@ function AnnouncementStatusBadge({ status }: { status: string }) {
     )
   }
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#EFF8FF] text-[#175CD3] border border-[#B2DDFF]">
+    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[#FFF8EC] text-[#D97706] border border-[#FEEFC6]">
       Draft
     </span>
   )
@@ -51,6 +46,7 @@ function AnnouncementStatusBadge({ status }: { status: string }) {
 
 function AdminAnnouncementsPage() {
   const queryClient = useQueryClient()
+  const canManageAnnouncements = useHasPermission('MANAGE_ANNOUNCEMENTS')
   const [isCreating, setIsCreating] = useState(false)
 
   // Fetch announcements from backend
@@ -78,8 +74,12 @@ function AdminAnnouncementsPage() {
       resetForm()
       setIsCreating(false)
     },
-    onError: () => {
-      toast.error('Failed to create announcement')
+    onError: (err: any) => {
+      if (err?.response?.status === 403) {
+        toast.error('Access Denied: You do not have permission to manage announcements.')
+      } else {
+        toast.error('Failed to create announcement')
+      }
     },
   })
 
@@ -111,6 +111,10 @@ function AdminAnnouncementsPage() {
   }, [announcements, search, audienceFilter, statusFilter])
 
   const handleSaveDraft = () => {
+    if (!canManageAnnouncements) {
+      toast.error('Permission denied: Action requires MANAGE_ANNOUNCEMENTS')
+      return
+    }
     if (!formTitle.trim()) {
       toast.error('Please enter an announcement title')
       return
@@ -126,6 +130,10 @@ function AdminAnnouncementsPage() {
   }
 
   const handlePublish = () => {
+    if (!canManageAnnouncements) {
+      toast.error('Permission denied: Action requires MANAGE_ANNOUNCEMENTS')
+      return
+    }
     if (!formTitle.trim()) {
       toast.error('Please enter an announcement title')
       return
@@ -171,11 +179,18 @@ function AdminAnnouncementsPage() {
           {!isCreating && (
             <button
               type="button"
+              disabled={!canManageAnnouncements}
+              title={!canManageAnnouncements ? 'Requires MANAGE_ANNOUNCEMENTS permission' : undefined}
               onClick={() => {
+                if (!canManageAnnouncements) {
+                  toast.error('Permission denied: Action requires MANAGE_ANNOUNCEMENTS')
+                  return
+                }
                 resetForm()
                 setIsCreating(true)
               }}
-              className="inline-flex items-center justify-center rounded-xl bg-[#00726D] px-5 py-2.5 text-xs sm:text-sm font-medium text-white shadow-xs transition hover:bg-[#005c58] active:scale-[0.99] cursor-pointer"
+              className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-xs sm:text-sm font-medium text-white shadow-xs transition active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${!canManageAnnouncements ? 'bg-gray-400' : 'bg-[#00726D] hover:bg-[#005c58]'
+                }`}
             >
               Create Announcement
             </button>
@@ -391,76 +406,18 @@ function AdminAnnouncementsPage() {
                 Message Content
               </label>
 
-              <div className="rounded-xl border border-gray-200 overflow-hidden shadow-2xs focus-within:ring-2 focus-within:ring-[#00726D]/20 focus-within:border-[#00726D] transition">
-                {/* Rich Text Toolbar */}
-                <div className="flex items-center gap-1 p-2 bg-[#F9FAFB] border-b border-gray-200 flex-wrap">
-                  <button
-                    type="button"
-                    title="Bold"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="Italic"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <div className="h-4 w-px bg-gray-300 mx-1" />
-                  <button
-                    type="button"
-                    title="Bullet List"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="Numbered List"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <ListOrdered className="w-4 h-4" />
-                  </button>
-                  <div className="h-4 w-px bg-gray-300 mx-1" />
-                  <button
-                    type="button"
-                    title="Insert Link"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </button>
-                  <div className="h-4 w-px bg-gray-300 mx-1" />
-                  <button
-                    type="button"
-                    title="Undo"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    title="Redo"
-                    className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-700 transition"
-                  >
-                    <RotateCw className="w-4 h-4" />
-                  </button>
-                  <div className="ml-auto flex items-center gap-1 text-[11px] text-gray-500 pr-2">
+              <RichTextEditor
+                value={formMessage}
+                onChange={setFormMessage}
+                placeholder="Write your announcement content here..."
+                minHeight="160px"
+                rightExtra={
+                  <div className="flex items-center gap-1 text-[11px] text-gray-500 pr-2">
                     <Sparkles className="w-3.5 h-3.5 text-[#00726D]" />
-                    <span>Markdown supported</span>
+                    <span>Rich text enabled</span>
                   </div>
-                </div>
-
-                {/* Textarea */}
-                <textarea
-                  rows={6}
-                  value={formMessage}
-                  onChange={(e) => setFormMessage(e.target.value)}
-                  placeholder="Write your announcement content here..."
-                  className="w-full p-4 text-sm text-[#101828] placeholder-gray-400 focus:outline-none resize-y"
-                />
-              </div>
+                }
+              />
             </div>
 
             {/* Action Buttons */}

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Eye, Loader2 } from 'lucide-react'
 import { apiClient } from '#/lib/apiClient'
 import { toast } from 'sonner'
+import { useHasPermission } from '#/hooks/useAdminRoles'
 
 export const Route = createFileRoute(
   '/(admin)/admin-dashboard/lawyers/$lawyerId',
@@ -91,6 +92,7 @@ function StatusBadge({
 function AdminLawyerDetailPage() {
   const { lawyerId } = Route.useParams()
   const queryClient = useQueryClient()
+  const canManageLawyers = useHasPermission('MANAGE_LAWYERS')
 
   // Fetch single lawyer details from live backend
   const { data: lawyer, isLoading } = useQuery<AdminLawyerDto>({
@@ -113,8 +115,12 @@ function AdminLawyerDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'lawyers'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] })
     },
-    onError: () => {
-      toast.error('Failed to update lawyer status')
+    onError: (err: any) => {
+      if (err?.response?.status === 403) {
+        toast.error('Access Denied: You do not have permission to modify lawyer accounts.')
+      } else {
+        toast.error('Failed to update lawyer status')
+      }
     },
   })
 
@@ -438,9 +444,18 @@ function AdminLawyerDetailPage() {
       <div className="flex justify-end pt-2">
         <button
           type="button"
-          disabled={toggleStatusMutation.isPending}
-          onClick={() => toggleStatusMutation.mutate()}
-          className="inline-flex items-center justify-center rounded-xl bg-[#C85A44] hover:bg-[#b34c37] px-7 py-3 text-sm font-medium text-white shadow-xs transition active:scale-[0.99] cursor-pointer disabled:opacity-50"
+          disabled={toggleStatusMutation.isPending || !canManageLawyers}
+          title={!canManageLawyers ? 'Requires MANAGE_LAWYERS permission' : undefined}
+          onClick={() => {
+            if (!canManageLawyers) {
+              toast.error('Permission denied: Action requires MANAGE_LAWYERS')
+              return
+            }
+            toggleStatusMutation.mutate()
+          }}
+          className={`inline-flex items-center justify-center rounded-xl px-7 py-3 text-sm font-medium text-white shadow-xs transition active:scale-[0.99] cursor-pointer disabled:opacity-50 ${
+            !canManageLawyers ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#C85A44] hover:bg-[#b34c37]'
+          }`}
         >
           {toggleStatusMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />

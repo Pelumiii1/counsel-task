@@ -10,6 +10,7 @@ export interface ProfileData {
   firm: string
   officeAddress: string
   callToBarDate: string
+  yearsOfPractice?: string
   enrolmentNumber: string
   bankName: string
   accountNumber: string
@@ -28,6 +29,8 @@ export interface ProfileUpdatePayload {
   firm?: string
   officeAddress?: string
   bio?: string
+  callToBarDate?: string
+  yearsOfPractice?: string
   practiceAreas?: string[]
   bankName?: string
   accountNumber?: string

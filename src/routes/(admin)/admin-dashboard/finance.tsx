@@ -8,9 +8,11 @@ import {
   X,
   Check,
   Loader2,
+  ShieldAlert,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiClient } from '#/lib/apiClient'
+import { useHasPermission } from '#/hooks/useAdminRoles'
 
 export const Route = createFileRoute('/(admin)/admin-dashboard/finance')({
   component: AdminFinancePage,
@@ -74,6 +76,7 @@ function PayoutStatusBadge({ status }: { status: string }) {
 
 function AdminFinancePage() {
   const queryClient = useQueryClient()
+  const canManageFinance = useHasPermission('MANAGE_FINANCE')
   const [activeTab, setActiveTab] = useState<FinanceTab>('transactions')
 
   // ── 1. Transactions Queries ──
@@ -114,8 +117,12 @@ function AdminFinancePage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] })
       setSelectedPayout(null)
     },
-    onError: () => {
-      toast.error('Failed to update payout status')
+    onError: (err: any) => {
+      if (err?.response?.status === 403) {
+        toast.error('Access Denied: You do not have permission to manage payouts.')
+      } else {
+        toast.error('Failed to update payout status')
+      }
     },
   })
 
@@ -151,8 +158,12 @@ function AdminFinancePage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'finance', 'transactions'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] })
     },
-    onError: () => {
-      toast.error('Failed to update platform settings')
+    onError: (err: any) => {
+      if (err?.response?.status === 403) {
+        toast.error('Access Denied: You do not have permission to modify financial settings.')
+      } else {
+        toast.error('Failed to update platform settings')
+      }
     },
   })
 
@@ -187,6 +198,10 @@ function AdminFinancePage() {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!canManageFinance) {
+      toast.error('Permission denied: Action requires MANAGE_FINANCE')
+      return
+    }
     settingsMutation.mutate({
       platformFeePercentage: parseFloat(platformFee) || 10,
       vatPercentage: parseFloat(vat) || 7.5,
@@ -597,18 +612,22 @@ function AdminFinancePage() {
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
+                disabled={!canManageFinance}
                 onClick={() => {
                   setPlatformFee('10')
                   setVat('7.5')
                 }}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-2xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-2xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Reset to Defaults
               </button>
               <button
                 type="submit"
-                disabled={settingsMutation.isPending}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs sm:text-sm font-medium shadow-xs transition cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                disabled={settingsMutation.isPending || !canManageFinance}
+                title={!canManageFinance ? 'Requires MANAGE_FINANCE permission' : undefined}
+                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-xs sm:text-sm font-medium shadow-xs transition cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${
+                  !canManageFinance ? 'bg-gray-400' : 'bg-[#00726D] hover:bg-[#005c58]'
+                }`}
               >
                 {settingsMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -812,14 +831,21 @@ function AdminFinancePage() {
               {selectedPayout.status !== 'Paid' && (
                 <button
                   type="button"
-                  disabled={payoutStatusMutation.isPending}
-                  onClick={() =>
+                  disabled={payoutStatusMutation.isPending || !canManageFinance}
+                  title={!canManageFinance ? 'Requires MANAGE_FINANCE permission' : undefined}
+                  onClick={() => {
+                    if (!canManageFinance) {
+                      toast.error('Permission denied: Action requires MANAGE_FINANCE')
+                      return
+                    }
                     payoutStatusMutation.mutate({
                       id: selectedPayout.rawId || selectedPayout.id,
                       status: 'Paid',
                     })
-                  }
-                  className="inline-flex items-center justify-center rounded-xl bg-[#00726D] px-6 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-[#005c58] active:scale-[0.99] cursor-pointer disabled:opacity-50"
+                  }}
+                  className={`inline-flex items-center justify-center rounded-xl px-6 py-2.5 text-sm font-medium text-white shadow-xs transition active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    !canManageFinance ? 'bg-gray-400' : 'bg-[#00726D] hover:bg-[#005c58]'
+                  }`}
                 >
                   {payoutStatusMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

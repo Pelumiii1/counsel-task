@@ -9,6 +9,7 @@ import {
 } from '#/components/ui/dialog'
 import { useTaskById } from '#/hooks/useTasks'
 import { useTaskProposals, type ProposalItem } from '#/hooks/useProposals'
+import { RichTextContent } from '#/components/ui/RichTextContent'
 
 const formatYearsOfPractice = (experience?: string): string => {
   if (!experience) return '5 yrs'
@@ -199,9 +200,9 @@ function ReviewProposalsPage() {
 
                     {/* Pitch Quote */}
                     {lawyer.quote && (
-                      <p className="text-xs text-gray-600 font-normal italic leading-relaxed mt-3.5 bg-gray-50/50 p-3 rounded-lg border border-gray-100 max-w-xl">
-                        "{lawyer.quote}"
-                      </p>
+                      <div className="text-xs text-gray-600 font-normal leading-relaxed mt-3.5 bg-gray-50/50 p-3 rounded-lg border border-gray-100 max-w-xl">
+                        <RichTextContent content={lawyer.quote} />
+                      </div>
                     )}
 
                     {/* Badges Pill Row */}
@@ -339,9 +340,12 @@ function ReviewProposalsPage() {
               <h4 className="text-xs font-bold text-[#595959] tracking-wider uppercase select-none font-roboto">
                 About
               </h4>
-              <p className="text-sm text-[#595959] leading-relaxed font-normal">
-                {activeProfileLawyer.about || 'Verified legal practitioner on CounselTask.'}
-              </p>
+              <div className="text-sm text-[#595959] leading-relaxed font-normal">
+                <RichTextContent
+                  content={activeProfileLawyer.about}
+                  fallback="Verified legal practitioner on CounselTask."
+                />
+              </div>
             </div>
 
             {/* Modal footer closing trigger */}

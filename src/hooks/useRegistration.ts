@@ -82,9 +82,9 @@ export function useSubmitCredentials() {
       return response.data
     },
     onSuccess: () => {
-      setAccountStatus('CREDENTIALS_SUBMITTED')
+      setAccountStatus('PENDING_REVIEW')
       setStep(3)
-      toast.success('Credentials saved! Please provide your settlement account.')
+      toast.success('Credentials submitted successfully! Your account is now under review.')
     },
     onError: (error: any) => {
       const msg = error.response?.data?.message || 'Failed to submit credentials'

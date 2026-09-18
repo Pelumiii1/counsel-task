@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Send, X } from 'lucide-react'
 import { useTaskById } from '#/hooks/useTasks'
 import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
 import { formatCurrency } from '#/lib/formatters'
+import { RichTextContent } from '#/components/ui/RichTextContent'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/task/$taskId',
@@ -14,7 +15,7 @@ export const Route = createFileRoute(
 function TaskDetailPage() {
   const { taskId } = Route.useParams()
   const navigate = useNavigate()
-  const { data: serverTask, isLoading } = useTaskById(taskId)
+  const { data: serverTask } = useTaskById(taskId)
   const { data: myProposals } = useMyProposals()
   const { mutate: createProposal } = useCreateProposal(taskId)
 
@@ -138,9 +139,9 @@ function TaskDetailPage() {
           {/* Row 3: Task Description */}
           <div className="flex flex-col">
             <span className="text-sm font-bold text-gray-900">Task Description</span>
-            <p className="text-sm text-gray-700 mt-1.5 leading-relaxed font-normal">
-              {task.description}
-            </p>
+            <div className="text-sm text-gray-700 mt-1.5 leading-relaxed font-normal">
+              <RichTextContent content={task.description} />
+            </div>
           </div>
 
           {/* Row 4: Confidentiality Level */}

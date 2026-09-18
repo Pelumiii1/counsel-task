@@ -102,7 +102,6 @@ const renderPieWithLabels = ({
   innerRadius,
   outerRadius,
   value,
-  name,
 }: any) => {
   const RADIAN = Math.PI / 180
   const radius = innerRadius + (outerRadius - innerRadius) * 0.58
@@ -138,8 +137,6 @@ function AdminReportsPage() {
 
   // Fallback structures if loading
   const totalUsers = reportData?.totalUsers ?? 3
-  const engagingLawyers = reportData?.engagingLawyers ?? 2
-  const assistingLawyers = reportData?.assistingLawyers ?? 1
   const verifiedLawyers = reportData?.verifiedLawyers ?? 2
   const userGrowth = reportData?.userGrowth || []
   const lawyersDistribution = reportData?.lawyersDistribution || [
@@ -198,11 +195,10 @@ function AdminReportsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('users')}
-          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${
-            activeTab === 'users'
-              ? 'bg-[#031625] text-white shadow-xs'
-              : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
-          }`}
+          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${activeTab === 'users'
+            ? 'bg-[#031625] text-white shadow-xs'
+            : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
+            }`}
         >
           Users
         </button>
@@ -210,11 +206,10 @@ function AdminReportsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('revenue')}
-          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${
-            activeTab === 'revenue'
-              ? 'bg-[#031625] text-white shadow-xs'
-              : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
-          }`}
+          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${activeTab === 'revenue'
+            ? 'bg-[#031625] text-white shadow-xs'
+            : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
+            }`}
         >
           Revenue
         </button>
@@ -222,11 +217,10 @@ function AdminReportsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('task')}
-          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${
-            activeTab === 'task'
-              ? 'bg-[#031625] text-white shadow-xs'
-              : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
-          }`}
+          className={`h-11 px-8 rounded-full text-xs sm:text-sm font-medium transition duration-150 cursor-pointer ${activeTab === 'task'
+            ? 'bg-[#031625] text-white shadow-xs'
+            : 'bg-[#E8ECEF] text-gray-700 hover:bg-[#dfe4e8]'
+            }`}
         >
           Task
         </button>
@@ -241,16 +235,6 @@ function AdminReportsPage() {
               title="Total Users"
               value={totalUsers}
               description="Platform total verified legal accounts"
-            />
-            <ReportStatCard
-              title="Engaging Lawyers"
-              value={engagingLawyers}
-              description="Lawyers creating task briefs"
-            />
-            <ReportStatCard
-              title="Assisting Lawyers"
-              value={assistingLawyers}
-              description="Lawyers assisting and submitting proposals"
             />
             <ReportStatCard
               title="Verified Practitioners"

@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, UserRound, X, Loader2 } from 'lucide-react'
 import { apiClient } from '#/lib/apiClient'
 import { toast } from 'sonner'
+import { useHasPermission } from '#/hooks/useAdminRoles'
+import { RichTextContent } from '#/components/ui/RichTextContent'
 
 export const Route = createFileRoute(
   '/(admin)/admin-dashboard/tasks/$taskId',
@@ -94,6 +96,7 @@ function StatusBadge({
 function AdminTaskDetailPage() {
   const { taskId } = Route.useParams()
   const queryClient = useQueryClient()
+  const canManageTasks = useHasPermission('MANAGE_TASKS')
 
   // Fetch task detail from backend
   const { data: task, isLoading } = useQuery<AdminTaskDto>({
@@ -118,8 +121,12 @@ function AdminTaskDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tasks'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'overview'] })
     },
-    onError: () => {
-      toast.error('Failed to update task status')
+    onError: (err: any) => {
+      if (err?.response?.status === 403) {
+        toast.error('Access Denied: You do not have permission to manage tasks.')
+      } else {
+        toast.error('Failed to update task status')
+      }
     },
   })
 
@@ -259,9 +266,9 @@ function AdminTaskDetailPage() {
           <span className="text-xs text-[#667085] block mb-1.5">
             Task Description
           </span>
-          <p className="text-xs sm:text-sm text-[#344054] leading-relaxed">
-            {task.description}
-          </p>
+          <div className="text-xs sm:text-sm text-[#344054] leading-relaxed">
+            <RichTextContent content={task.description} />
+          </div>
         </div>
       </section>
 
@@ -414,20 +421,34 @@ function AdminTaskDetailPage() {
       <div className="flex items-center justify-end gap-3 pt-2 pb-6">
         <button
           type="button"
-          disabled={statusMutation.isPending}
-          onClick={() => statusMutation.mutate('Disputed')}
-          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-[#344054] shadow-2xs transition hover:bg-gray-50 active:scale-[0.99] cursor-pointer disabled:opacity-50"
+          disabled={statusMutation.isPending || !canManageTasks}
+          title={!canManageTasks ? 'Requires MANAGE_TASKS permission' : undefined}
+          onClick={() => {
+            if (!canManageTasks) {
+              toast.error('Permission denied: Action requires MANAGE_TASKS')
+              return
+            }
+            statusMutation.mutate('Disputed')
+          }}
+          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-[#344054] shadow-2xs transition hover:bg-gray-50 active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Resolve Dispute
         </button>
 
         <button
           type="button"
-          disabled={statusMutation.isPending}
-          onClick={() =>
+          disabled={statusMutation.isPending || !canManageTasks}
+          title={!canManageTasks ? 'Requires MANAGE_TASKS permission' : undefined}
+          onClick={() => {
+            if (!canManageTasks) {
+              toast.error('Permission denied: Action requires MANAGE_TASKS')
+              return
+            }
             statusMutation.mutate(isCancelled ? 'In Progress' : 'Cancelled')
-          }
-          className="inline-flex items-center justify-center rounded-lg bg-[#00726D] px-5 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-[#005c58] active:scale-[0.99] cursor-pointer disabled:opacity-50"
+          }}
+          className={`inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium text-white shadow-xs transition active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+            !canManageTasks ? 'bg-gray-400' : 'bg-[#00726D] hover:bg-[#005c58]'
+          }`}
         >
           {statusMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />

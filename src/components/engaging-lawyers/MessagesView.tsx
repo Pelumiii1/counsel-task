@@ -8,19 +8,12 @@ import {
   MessageSquare,
   CheckCircle2,
   X,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Link2,
-  Sparkles,
-  Undo,
-  Redo,
   UploadCloud,
   ArrowRight,
   Hourglass,
   Lock as LockIcon,
 } from 'lucide-react'
+import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { toast } from 'sonner'
 import Lock from '../../assets/icons/lock.png'
 import PDF from '../../assets/icons/pdf.png'
@@ -638,69 +631,12 @@ export function MessagesView({
                 <label className="text-xs sm:text-sm font-semibold text-gray-900 font-secondary flex items-center gap-1">
                   Evidence of Completion <span className="text-red-500">*</span>
                 </label>
-                <div className="rounded-xl border border-gray-200 bg-white overflow-hidden focus-within:border-[#00726D]/50 focus-within:ring-2 focus-within:ring-[#00726D]/10 transition">
-                  {/* Editor Toolbar */}
-                  <div className="flex items-center gap-1 sm:gap-1.5 px-3 py-2 border-b border-gray-150 bg-white select-none text-gray-600">
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <ListOrdered className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Link2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Undo className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="p-1.5 rounded hover:bg-gray-100 transition cursor-pointer text-gray-700 hover:text-black"
-                    >
-                      <Redo className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Textarea */}
-                  <textarea
-                    rows={4}
-                    required
-                    value={completionNote}
-                    onChange={(e) => setCompletionNote(e.target.value)}
-                    placeholder="Appeared at Ikeja High Court at 8:45am for the land dispute hearing. Matter was called at 10:10am. Held brief as instructed; next adjourned date is 14 August 2026."
-                    className="w-full p-3.5 text-xs sm:text-sm font-normal text-gray-800 placeholder-gray-400 focus:outline-none resize-none leading-relaxed font-secondary min-h-27.5"
-                  />
-                </div>
+                <RichTextEditor
+                  value={completionNote}
+                  onChange={setCompletionNote}
+                  placeholder="Appeared at Ikeja High Court at 8:45am for the land dispute hearing. Matter was called at 10:10am. Held brief as instructed; next adjourned date is 14 August 2026."
+                  minHeight="110px"
+                />
               </div>
 
               {/* Supporting Files Dropzone */}

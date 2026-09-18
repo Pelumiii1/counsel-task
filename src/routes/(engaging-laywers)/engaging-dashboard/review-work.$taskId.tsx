@@ -6,6 +6,7 @@ import JPG from '../../../assets/icons/jpg.png'
 import { useTaskById, useRequestTaskChanges } from '#/hooks/useTasks'
 import { useTaskProposals } from '#/hooks/useProposals'
 import { useThreadMessages, useSendMessage } from '#/hooks/useMessages'
+import { RichTextContent } from '#/components/ui/RichTextContent'
 
 export const Route = createFileRoute(
   '/(engaging-laywers)/engaging-dashboard/review-work/$taskId',
@@ -219,9 +220,9 @@ function ReviewWorkPage() {
               Attendance Confirmation
             </h3>
             <div className="bg-[#E6F1F0]/80 rounded-[10px] p-5 border border-[#00726d]/10 flex flex-col gap-3 text-[#005652] font-secondary">
-              <p className="text-xs sm:text-sm text-gray-750 leading-relaxed font-normal">
-                {attendanceNote}
-              </p>
+              <div className="text-xs sm:text-sm text-gray-750 leading-relaxed font-normal">
+                <RichTextContent content={attendanceNote} />
+              </div>
               <span className="text-[11px] text-[#00726d] font-normal">
                 Submitted by {lawyerName} • {submissionDateFormatted}
               </span>

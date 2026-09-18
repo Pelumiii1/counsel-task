@@ -6,10 +6,11 @@ import {
   Link,
   useLocation,
 } from '@tanstack/react-router'
-import { Bell, ChevronsUpDown, LogOut } from 'lucide-react'
+import { Bell, ChevronsUpDown, LogOut, ShieldCheck } from 'lucide-react'
 import { getAuthPayload, requireAuthGuard, storeSessionToken } from '#/lib/authGuard'
 import { NotFound } from '#/components/NotFound'
 import LogoWhite from '#/assets/logo-white.png'
+import { useMyRole } from '#/hooks/useAdminRoles'
 
 export const Route = createFileRoute('/(admin)/admin-dashboard')({
   beforeLoad: () => {
@@ -19,19 +20,27 @@ export const Route = createFileRoute('/(admin)/admin-dashboard')({
   component: AdminDashboardLayout,
 })
 
-const NAV_ITEMS = [
-  { label: 'Overview', path: '/admin-dashboard' },
-  { label: 'Task', path: '/admin-dashboard/tasks' },
-  { label: 'Lawyers', path: '/admin-dashboard/lawyers' },
-  { label: 'Finance', path: '/admin-dashboard/finance' },
-  { label: 'Announcements', path: '/admin-dashboard/announcements' },
-  { label: 'Report', path: '/admin-dashboard/report' },
+interface NavItem {
+  label: string
+  path: string
+  permission?: string
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Overview', path: '/admin-dashboard', permission: 'VIEW_OVERVIEW' },
+  { label: 'Task', path: '/admin-dashboard/tasks', permission: 'MANAGE_TASKS' },
+  { label: 'Lawyers', path: '/admin-dashboard/lawyers', permission: 'MANAGE_LAWYERS' },
+  { label: 'Finance', path: '/admin-dashboard/finance', permission: 'MANAGE_FINANCE' },
+  { label: 'Announcements', path: '/admin-dashboard/announcements', permission: 'MANAGE_ANNOUNCEMENTS' },
+  { label: 'Report', path: '/admin-dashboard/report', permission: 'VIEW_REPORTS' },
+  { label: 'Roles & Permissions', path: '/admin-dashboard/roles', permission: 'MANAGE_ROLES' },
 ]
 
 function AdminDashboardLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const auth = getAuthPayload()
+  const { data: myRole } = useMyRole()
 
   const firstName = (auth as any)?.firstName || 'Admin'
   const lastName = (auth as any)?.lastName || 'User'
@@ -59,6 +68,13 @@ function AdminDashboardLayout() {
     return location.pathname.startsWith(path)
   }
 
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (!myRole) return true
+    if (myRole.code === 'SUPER_ADMIN' || myRole.permissions?.includes('*')) return true
+    if (!item.permission) return true
+    return myRole.permissions?.includes(item.permission)
+  })
+
   return (
     <div className="min-h-screen bg-[#f3f4f6] flex font-secondary overflow-hidden">
       {/* ── Sidebar ── */}
@@ -85,7 +101,7 @@ function AdminDashboardLayout() {
 
           {/* Nav List */}
           <nav className="mt-6 px-3 flex flex-col gap-1.5">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const active = isNavActive(item.path)
               return (
                 <Link
@@ -103,22 +119,33 @@ function AdminDashboardLayout() {
           </nav>
         </div>
 
-        {/* Bottom Profile Footer */}
-        <div className="p-4 border-t border-[#0d2235] flex items-center justify-between hover:bg-[#071f32] transition cursor-pointer">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs">
-              {initials}
+        {/* Bottom Profile Footer & Sign Out */}
+        <div className="p-3 border-t border-[#0d2235]">
+          <div className="p-2.5 rounded-xl bg-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-[#00726d] flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider select-none shadow-xs shrink-0">
+                {initials}
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="text-xs font-semibold leading-tight text-white truncate max-w-32">
+                  {fullName}
+                </span>
+                <span className="text-[10px] text-teal-300/80 font-medium leading-tight truncate max-w-32">
+                  {myRole?.name || 'Administrator'}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-semibold leading-tight text-white truncate max-w-30">
-                {fullName}
-              </span>
-              <span className="text-[10px] text-gray-400 font-normal leading-tight">
-                Administrator
-              </span>
-            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Sign out"
+              aria-label="Sign out"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/15 transition cursor-pointer shrink-0"
+            >
+              <LogOut className="w-4 h-4 stroke-[1.8]" />
+            </button>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-gray-400" />
         </div>
       </aside>
 
@@ -141,16 +168,6 @@ function AdminDashboardLayout() {
             >
               {initials}
             </div>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer focus:outline-none"
-            >
-              <LogOut className="w-4 h-4 stroke-[1.8]" />
-            </button>
           </div>
         </header>
 

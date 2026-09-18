@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   CheckCircle2,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Link2,
-  RotateCcw,
-  RotateCw,
   Send,
   X,
+  Briefcase,
+  SearchX,
+  Bell,
+  SlidersHorizontal,
+  Loader2,
+  RotateCw,
 } from 'lucide-react'
+import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { useTasks } from '#/hooks/useTasks'
 import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
 import { useAssistingProfile } from '#/hooks/useProfile'
@@ -75,8 +75,15 @@ function AssistingDashboardIndex() {
   const [showSuccessToast, setShowSuccessToast] = useState(false)
 
   const { data: profile } = useAssistingProfile()
+  const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
+
   const regFullName = useRegistrationStore((state) => state.fullName)
-  const { data: serverTasks } = useTasks()
+  const {
+    data: serverTasks,
+    isLoading: isTasksLoading,
+    isFetching: isTasksFetching,
+    refetch: refetchTasks,
+  } = useTasks()
   const { data: myProposals } = useMyProposals()
   const { mutate: createProposal } = useCreateProposal(selectedTask ? selectedTask.id : '')
 
@@ -124,16 +131,16 @@ function AssistingDashboardIndex() {
     setIsProfileFilled(true)
   }
 
-  const handleResetProfile = () => {
-    localStorage.setItem('counsel_assisting_profile_filled', 'false')
-    setIsProfileFilled(false)
-  }
+  // const handleResetProfile = () => {
+  //   localStorage.setItem('counsel_assisting_profile_filled', 'false')
+  //   setIsProfileFilled(false)
+  // }
 
-  const handleOpenTask = (task: AvailableTask) => {
-    setSelectedTask(task)
-    setProposalBid(task.fee)
-    setProposalCover('')
-  }
+  // const handleOpenTask = (task: AvailableTask) => {
+  //   setSelectedTask(task)
+  //   setProposalBid(task.fee)
+  //   setProposalCover('')
+  // }
 
   const handleSubmitProposal = (e: React.FormEvent) => {
     e.preventDefault()
@@ -227,19 +234,19 @@ function AssistingDashboardIndex() {
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 select-none">
         <div className="flex flex-col gap-1">
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
-            Welcome Oluwarotimi!!
+            Welcome {firstName}!
           </h1>
           <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
             What action are you taking today
           </p>
 
           {/* Inline switcher to test both views */}
-          <div className="mt-2 flex items-center gap-3 text-[11px]">
+          {/* <div className="mt-2 flex items-center gap-3 text-[11px]">
             <button
               onClick={handleSaveProfile}
               className={`transition cursor-pointer font-medium ${isProfileFilled
-                  ? 'text-[#00726D] font-bold underline'
-                  : 'text-gray-500 hover:text-gray-800'
+                ? 'text-[#00726D] font-bold underline'
+                : 'text-gray-500 hover:text-gray-800'
                 }`}
             >
               Browse Available Tasks UI
@@ -248,13 +255,13 @@ function AssistingDashboardIndex() {
             <button
               onClick={handleResetProfile}
               className={`transition cursor-pointer font-medium ${!isProfileFilled
-                  ? 'text-[#00726D] font-bold underline'
-                  : 'text-gray-500 hover:text-gray-800'
+                ? 'text-[#00726D] font-bold underline'
+                : 'text-gray-500 hover:text-gray-800'
                 }`}
             >
               Build Your Profile (Onboarding UI)
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -284,8 +291,8 @@ function AssistingDashboardIndex() {
                   type="button"
                   onClick={() => setActiveFilter(btn)}
                   className={`h-9 px-4.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none ${isActive
-                      ? 'bg-[#041626] text-white shadow-xs'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                    ? 'bg-[#041626] text-white shadow-xs'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
                     }`}
                 >
                   {btn}
@@ -294,90 +301,157 @@ function AssistingDashboardIndex() {
             })}
           </div>
 
-          {/* Task Cards List */}
-          <div className="flex flex-col gap-5">
-            {filteredTasks.map((task) => {
-              const isApplied = appliedTaskIds.includes(task.id)
+          {/* Task Cards List or Empty State */}
+          {isTasksLoading ? (
+            <div className="w-full bg-white border border-gray-150 rounded-2xl p-12 sm:p-16 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center justify-center gap-3 text-center">
+              <Loader2 className="w-8 h-8 text-[#00726D] animate-spin" />
+              <p className="text-sm font-medium text-gray-800">Loading available tasks...</p>
+              <span className="text-xs text-gray-400">Fetching the latest court appearances and legal tasks</span>
+            </div>
+          ) : filteredTasks.length > 0 ? (
+            <div className="flex flex-col gap-5">
+              {filteredTasks.map((task) => {
+                const isApplied = appliedTaskIds.includes(task.id)
 
-              return (
-                <div
-                  key={task.id}
-                  onClick={() =>
-                    navigate({
-                      to: '/assisting-dashboard/task/$taskId',
-                      params: { taskId: task.id },
-                    })
-                  }
-                  className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col justify-between gap-4 cursor-pointer"
-                >
-                  {/* Top Row: Title & Fee */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                    <div className="flex flex-col">
-                      <h3 className="text-xl sm:text-[18px] font-medium text-black leading-tight font-primary">
-                        {task.title}
-                      </h3>
-                      <div className="text-xs sm:text-[13px] text-black font-normal mt-1 flex items-center gap-1.5 flex-wrap">
-                        <span>{task.court}</span>
-                        <span>•</span>
-                        <span>{task.deadline}</span>
-                        <span>•</span>
-                        <span>{task.practiceArea}</span>
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() =>
+                      navigate({
+                        to: '/assisting-dashboard/task/$taskId',
+                        params: { taskId: task.id },
+                      })
+                    }
+                    className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col justify-between gap-4 cursor-pointer"
+                  >
+                    {/* Top Row: Title & Fee */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                      <div className="flex flex-col">
+                        <h3 className="text-xl sm:text-[18px] font-medium text-black leading-tight font-primary">
+                          {task.title}
+                        </h3>
+                        <div className="text-xs sm:text-[13px] text-black font-normal mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span>{task.court}</span>
+                          <span>•</span>
+                          <span>{task.deadline}</span>
+                          <span>•</span>
+                          <span>{task.practiceArea}</span>
+                        </div>
+                      </div>
+
+                      {/* Fee Tag */}
+                      <div className="flex flex-col sm:items-end shrink-0">
+                        <span className="text-2xl sm:text-[20px] font-medium text-[#00726D] leading-tight font-primary">
+                          {task.fee}
+                        </span>
+                        <span className="text-[11px] text-gray-400 font-normal mt-0.5">
+                          Quoted Fee
+                        </span>
                       </div>
                     </div>
 
-                    {/* Fee Tag */}
-                    <div className="flex flex-col sm:items-end shrink-0">
-                      <span className="text-2xl sm:text-[20px] font-medium text-[#00726D] leading-tight font-primary">
-                        {task.fee}
-                      </span>
-                      <span className="text-[11px] text-gray-400 font-normal mt-0.5">
-                        Quoted Fee
-                      </span>
+                    {/* Description */}
+                    <p className="text-xs sm:text-[13.5px] text-black leading-relaxed font-normal">
+                      {task.description}
+                    </p>
+
+                    {/* Footer Row: Tags & View Task Action */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                      {/* Tags */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {task.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="bg-[#f0f2f4] text-gray-600 text-[11px] px-3.5 py-1 rounded-full font-medium select-none"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Button */}
+                      <div className="flex items-center justify-end">
+                        {isApplied ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Proposal Submitted
+                          </span>
+                        ) : (
+                          <Link
+                            to="/assisting-dashboard/task/$taskId"
+                            params={{ taskId: task.id }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-9.5 px-5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 text-gray-800 text-xs font-medium shadow-2xs transition cursor-pointer select-none active:scale-[0.98] inline-flex items-center justify-center no-underline"
+                          >
+                            View Task
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="w-full bg-white border border-gray-150 rounded-2xl p-10 sm:p-14 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center text-center">
+              {/* Icon Container */}
+              <div className="w-16 h-16 rounded-2xl bg-[#E6F1F0] flex items-center justify-center mb-5 text-[#00726D] shadow-xs select-none">
+                {activeFilter === 'Matching My Practice' ? (
+                  <Briefcase className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
+                ) : (
+                  <SearchX className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
+                )}
+              </div>
 
-                  {/* Description */}
-                  <p className="text-xs sm:text-[13.5px] text-black leading-relaxed font-normal">
-                    {task.description}
-                  </p>
+              {/* Title */}
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 font-primary">
+                {activeFilter === 'Matching My Practice'
+                  ? 'No available tasks right now'
+                  : `No tasks found for "${activeFilter}"`}
+              </h3>
 
-                  {/* Footer Row: Tags & View Task Action */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                    {/* Tags */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {task.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-[#f0f2f4] text-gray-600 text-[11px] px-3.5 py-1 rounded-full font-medium select-none"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+              {/* Description */}
+              <p className="text-xs sm:text-sm text-gray-500 max-w-md mt-2 leading-relaxed font-normal">
+                {activeFilter === 'Matching My Practice'
+                  ? 'There are currently no open briefs or court appearances available. Engaging lawyers post new tasks regularly — check back shortly or make sure your practice alerts are active.'
+                  : 'There are currently no tasks matching the selected filter. Try resetting your filter to view all available briefs.'}
+              </p>
 
-                    {/* Button */}
-                    <div className="flex items-center justify-end">
-                      {isApplied ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Proposal Submitted
-                        </span>
-                      ) : (
-                        <Link
-                          to="/assisting-dashboard/task/$taskId"
-                          params={{ taskId: task.id }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="h-9.5 px-5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 text-gray-800 text-xs font-medium shadow-2xs transition cursor-pointer select-none active:scale-[0.98] inline-flex items-center justify-center no-underline"
-                        >
-                          View Task
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-6 select-none">
+                {activeFilter !== 'Matching My Practice' && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('Matching My Practice')}
+                    className="h-10 px-5 rounded-xl bg-[#041626] hover:bg-[#08223a] text-white text-xs sm:text-sm font-medium transition cursor-pointer shadow-xs active:scale-[0.98] inline-flex items-center gap-2"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Reset Filters</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => refetchTasks()}
+                  disabled={isTasksFetching}
+                  className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2"
+                >
+                  <RotateCw
+                    className={`w-3.5 h-3.5 text-gray-500 ${isTasksFetching ? 'animate-spin' : ''}`}
+                  />
+                  <span>{isTasksFetching ? 'Refreshing...' : 'Refresh Tasks'}</span>
+                </button>
+
+                <Link
+                  to="/assisting-dashboard/profile"
+                  className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2 no-underline"
+                >
+                  <Bell className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Update Practice Areas</span>
+                </Link>
+              </div>
+            </div>
+          )}
         </section>
       ) : (
         /* ========================================================================= */
@@ -410,8 +484,8 @@ function AssistingDashboardIndex() {
                       type="button"
                       onClick={() => togglePracticeArea(area)}
                       className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
-                          ? 'bg-[#041626] text-white shadow-xs'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#041626] text-white shadow-xs'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                     >
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -436,8 +510,8 @@ function AssistingDashboardIndex() {
                       type="button"
                       onClick={() => toggleCourt(court)}
                       className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
-                          ? 'bg-[#041626] text-white shadow-xs'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#041626] text-white shadow-xs'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                     >
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -462,8 +536,8 @@ function AssistingDashboardIndex() {
                       type="button"
                       onClick={() => toggleDay(day)}
                       className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${isSelected
-                          ? 'bg-[#041626] text-white shadow-xs'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#041626] text-white shadow-xs'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                     >
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -508,72 +582,12 @@ function AssistingDashboardIndex() {
               <label className="text-xs sm:text-sm font-bold text-gray-900">
                 Bio / Summary <span className="text-red-500">*</span>
               </label>
-              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs focus-within:border-[#00726D] focus-within:ring-2 focus-within:ring-[#00726D]/10 transition">
-                {/* Rich Editor Toolbar Mock */}
-                <div className="bg-[#f9fafb] border-b border-gray-200 p-2 flex items-center gap-1">
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Bold"
-                  >
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Italic"
-                  >
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Bullet List"
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Numbered List"
-                  >
-                    <ListOrdered className="w-4 h-4" />
-                  </button>
-                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Insert Link"
-                  >
-                    <Link2 className="w-4 h-4" />
-                  </button>
-                  <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Undo"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                    title="Redo"
-                  >
-                    <RotateCw className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Textarea */}
-                <textarea
-                  rows={4}
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="w-full p-4 text-xs sm:text-sm text-gray-700 font-normal leading-relaxed focus:outline-none resize-none bg-white"
-                  placeholder="Write a brief professional summary..."
-                />
-              </div>
+              <RichTextEditor
+                value={bio}
+                onChange={setBio}
+                placeholder="Write a brief professional summary..."
+                minHeight="120px"
+              />
             </div>
 
             {/* Section F: Profile Preview Card */}

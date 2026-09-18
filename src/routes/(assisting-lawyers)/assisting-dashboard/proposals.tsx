@@ -1,14 +1,13 @@
-import { useState } from 'react'
+import { useAssistingProfile } from '#/hooks/useProfile'
+import { useMyProposals } from '#/hooks/useProposals'
+import { formatCurrency } from '#/lib/formatters'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Search,
   SlidersHorizontal,
-  CheckCircle2,
-  Check,
-  X,
+  X
 } from 'lucide-react'
-import { useMyProposals } from '#/hooks/useProposals'
-import { formatCurrency } from '#/lib/formatters'
+import { useState } from 'react'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/proposals',
@@ -33,25 +32,25 @@ function MyProposalsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
-  const [showNotificationBanner, setShowNotificationBanner] = useState(true)
   const [selectedProposalForModal, setSelectedProposalForModal] =
     useState<Proposal | null>(null)
-
   const { data: serverProposals } = useMyProposals()
+  const { data: profile } = useAssistingProfile()
+  const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
 
   const proposalsList: Proposal[] =
     serverProposals && serverProposals.length > 0
       ? serverProposals.map((p) => ({
-          id: String(p.id),
-          taskId: String(p.taskId),
-          taskTitle: p.taskTitle || 'Legal Brief',
-          practiceArea: p.practiceArea || 'Property Law',
-          client: p.name || 'Engaging Counsel',
-          feeQuoted: formatCurrency(p.fee),
-          dateSent: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent',
-          status: (p.status as any) || 'Awaiting response',
-          note: p.quote || 'Proposal submitted for this matter.',
-        }))
+        id: String(p.id),
+        taskId: String(p.taskId),
+        taskTitle: p.taskTitle || 'Legal Brief',
+        practiceArea: p.practiceArea || 'Property Law',
+        client: p.clientName || 'Engaging Counsel',
+        feeQuoted: formatCurrency(p.fee),
+        dateSent: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent',
+        status: (p.status as any) || 'Awaiting response',
+        note: p.quote || 'Proposal submitted for this matter.',
+      }))
       : []
 
   const filteredProposals = proposalsList.filter((p) => {
@@ -98,7 +97,7 @@ function MyProposalsPage() {
       {/* Top Banner Header */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col gap-1 select-none">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
-          Welcome Oluwarotimi!!
+          Welcome {firstName}!
         </h1>
         <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
           What action are you taking today
@@ -145,7 +144,7 @@ function MyProposalsPage() {
             </button>
 
             {showStatusDropdown && (
-              <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-[170px] flex flex-col gap-1 text-xs">
+              <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-42.5 flex flex-col gap-1 text-xs">
                 {['All', 'Awaiting response', 'Selected', 'Declined'].map((s) => (
                   <button
                     key={s}
@@ -154,11 +153,10 @@ function MyProposalsPage() {
                       setStatusFilter(s)
                       setShowStatusDropdown(false)
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition cursor-pointer ${
-                      statusFilter === s
-                        ? 'bg-[#E5F3F1] text-[#00726D] font-semibold'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition cursor-pointer ${statusFilter === s
+                      ? 'bg-[#E5F3F1] text-[#00726D] font-semibold'
+                      : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                   >
                     {s}
                   </button>

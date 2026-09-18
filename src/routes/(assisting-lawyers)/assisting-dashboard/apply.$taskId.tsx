@@ -2,15 +2,9 @@ import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Link2,
-  RotateCcw,
-  RotateCw,
   Hourglass,
 } from 'lucide-react'
+import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { useTaskById } from '#/hooks/useTasks'
 import { useCreateProposal } from '#/hooks/useProposals'
 import { useAssistingProfile } from '#/hooks/useProfile'
@@ -183,7 +177,7 @@ function SubmitProposalPage() {
                 value={quotedFee}
                 onChange={(e) => setQuotedFee(e.target.value)}
                 placeholder="35,000"
-                className="w-full h-11 pl-8 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-gray-900 focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs font-primary font-medium"
+                className="w-full h-11 pl-8 pr-4 rounded-xl border border-gray-200 bg-white text-sm font-normal text-gray-900 focus:border-[#00726D] focus:ring-2 focus:ring-[#00726D]/10 focus:outline-none transition shadow-2xs font-primary"
               />
               <span className="absolute left-3.5 top-3 text-gray-500 font-normal text-sm font-primary">
                 ₦
@@ -206,11 +200,10 @@ function SubmitProposalPage() {
               <button
                 type="button"
                 onClick={() => setIsAvailableSelected(!isAvailableSelected)}
-                className={`h-10 px-5 rounded-full text-xs font-medium transition cursor-pointer select-none ${
-                  isAvailableSelected
+                className={`h-10 px-5 rounded-full text-xs font-medium transition cursor-pointer select-none ${isAvailableSelected
                     ? 'bg-[#041626] text-white shadow-xs'
                     : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 {task.availabilityLabel}
               </button>
@@ -228,72 +221,12 @@ function SubmitProposalPage() {
               </p>
             </div>
 
-            <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs focus-within:border-[#00726D] focus-within:ring-2 focus-within:ring-[#00726D]/10 transition">
-              {/* Toolbar */}
-              <div className="bg-[#f9fafb] border-b border-gray-200 p-2 flex items-center gap-1">
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Bold"
-                >
-                  <Bold className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Italic"
-                >
-                  <Italic className="w-4 h-4" />
-                </button>
-                <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Bullet List"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Numbered List"
-                >
-                  <ListOrdered className="w-4 h-4" />
-                </button>
-                <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Insert Link"
-                >
-                  <Link2 className="w-4 h-4" />
-                </button>
-                <span className="w-[1px] h-4 bg-gray-200 mx-1" />
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Undo"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  className="p-1.5 hover:bg-gray-100 rounded text-gray-700 transition cursor-pointer"
-                  title="Redo"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Textarea */}
-              <textarea
-                rows={4}
-                value={experienceText}
-                onChange={(e) => setExperienceText(e.target.value)}
-                className="w-full p-4 text-xs sm:text-sm text-gray-700 font-normal leading-relaxed focus:outline-none resize-none bg-white"
-                placeholder="State your experience with this matter or location..."
-              />
-            </div>
+            <RichTextEditor
+              value={experienceText}
+              onChange={setExperienceText}
+              placeholder="State your experience with this matter or location..."
+              minHeight="120px"
+            />
           </div>
 
           {/* Section 4: Profile Preview Card */}
