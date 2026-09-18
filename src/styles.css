@@ -345,3 +345,17 @@ body,
   padding-left: 1.25rem;
 }
 
+.ProseMirror a,
+.rich-text-rendered a {
+  color: #00726D;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.ProseMirror a:hover,
+.rich-text-rendered a:hover {
+  color: #005c58;
+}
+
+

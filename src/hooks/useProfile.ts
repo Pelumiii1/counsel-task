@@ -18,6 +18,9 @@ export interface ProfileData {
   status: string
   bio: string
   practiceAreas: string[]
+  courtsCovered?: string[]
+  weeklyAvailability?: string[]
+  isProfileComplete?: boolean
   role: string
   tasksPostedCount: number
   activeTasksCount: number
@@ -32,6 +35,8 @@ export interface ProfileUpdatePayload {
   callToBarDate?: string
   yearsOfPractice?: string
   practiceAreas?: string[]
+  courtsCovered?: string[]
+  weeklyAvailability?: string[]
   bankName?: string
   accountNumber?: string
   accountName?: string

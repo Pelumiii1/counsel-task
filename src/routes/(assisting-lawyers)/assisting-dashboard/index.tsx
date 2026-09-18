@@ -14,9 +14,10 @@ import {
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { useTasks } from '#/hooks/useTasks'
 import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
-import { useAssistingProfile } from '#/hooks/useProfile'
+import { useAssistingProfile, useUpdateAssistingProfile } from '#/hooks/useProfile'
 import { useRegistrationStore } from '#/store/useRegistrationStore'
 import { formatCurrency } from '#/lib/formatters'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/',
@@ -40,33 +41,19 @@ const BROWSE_TASKS: AvailableTask[] = []
 
 function AssistingDashboardIndex() {
   const navigate = useNavigate()
-  // Check if assisting lawyer has completed profile (defaults to true for browse view, or toggled)
+  // Check if assisting lawyer has completed profile
   const [isProfileFilled, setIsProfileFilled] = useState<boolean>(true)
 
   // Filter toolbar state
   const [activeFilter, setActiveFilter] = useState<string>('Matching My Practice')
 
   // Profile Form States (for onboarding mode)
-  const [practiceAreas, setPracticeAreas] = useState<string[]>([
-    'Property Law',
-    'Commercial Litigation',
-    'Tenancy & Real Estate',
-  ])
-  const [courtsCovered, setCourtsCovered] = useState<string[]>([
-    'Ikeja High Court',
-    'Yaba Magistrate Court',
-  ])
-  const [weeklyAvailability, setWeeklyAvailability] = useState<string[]>([
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-  ])
-  const [yearsOfPractice, setYearsOfPractice] = useState<string>('9')
-  const [callToBarDate, setCallToBarDate] = useState<string>('02/11/2026')
-  const [bio, setBio] = useState<string>(
-    'Called to bar in 2018. Focused on property and land dispute matters across Lagos State courts. Based five minutes from Ikeja High Court, available for short-notice hearings most weekdays.',
-  )
+  const [practiceAreas, setPracticeAreas] = useState<string[]>([])
+  const [courtsCovered, setCourtsCovered] = useState<string[]>([])
+  const [weeklyAvailability, setWeeklyAvailability] = useState<string[]>([])
+  const [yearsOfPractice, setYearsOfPractice] = useState<string>('')
+  const [callToBarDate, setCallToBarDate] = useState<string>('')
+  const [bio, setBio] = useState<string>('')
 
   // Selected Task Modal state
   const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null)
@@ -74,7 +61,8 @@ function AssistingDashboardIndex() {
   const [proposalCover, setProposalCover] = useState('')
   const [showSuccessToast, setShowSuccessToast] = useState(false)
 
-  const { data: profile } = useAssistingProfile()
+  const { data: profile, isLoading: isProfileLoading } = useAssistingProfile()
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateAssistingProfile()
   const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
 
   const regFullName = useRegistrationStore((state) => state.fullName)
@@ -85,28 +73,58 @@ function AssistingDashboardIndex() {
     refetch: refetchTasks,
   } = useTasks()
   const { data: myProposals } = useMyProposals()
-  const { mutate: createProposal } = useCreateProposal(selectedTask ? selectedTask.id : '')
+  const { mutate: createProposal, isPending: isCreatingProposal } = useCreateProposal(selectedTask ? selectedTask.id : '')
 
-  const lawyerFullName = profile?.fullName?.trim() || regFullName?.trim() || 'Funke Akindele'
+  const lawyerFullName = profile?.fullName?.trim() || regFullName?.trim() || 'Counsel'
   const initials = lawyerFullName
     .split(' ')
     .filter(Boolean)
     .map((n) => n[0])
     .join('')
     .substring(0, 2)
-    .toUpperCase() || 'FA'
+    .toUpperCase() || 'CT'
 
   const appliedTaskIds = (myProposals || []).map((p) => String(p.taskId))
 
-  // Check localStorage status if set
+  // Determine profile completion from backend data and local overrides
   useEffect(() => {
-    const storedStatus = localStorage.getItem('counsel_assisting_profile_filled')
-    if (storedStatus === 'false') {
-      setIsProfileFilled(false)
-    } else {
-      setIsProfileFilled(true)
+    if (profile) {
+      const hasCompleteInBackend = Boolean(
+        profile.isProfileComplete ||
+        (profile.practiceAreas && profile.practiceAreas.length > 0 && profile.bio && profile.bio.trim().length > 0)
+      )
+
+      const localExplicitFilled = localStorage.getItem('counsel_assisting_profile_filled') === 'true'
+      const localExplicitFalse = localStorage.getItem('counsel_assisting_profile_filled') === 'false'
+
+      if (localExplicitFalse) {
+        setIsProfileFilled(false)
+      } else if (hasCompleteInBackend || localExplicitFilled) {
+        setIsProfileFilled(true)
+      } else {
+        setIsProfileFilled(false)
+      }
+
+      if (profile.practiceAreas && profile.practiceAreas.length > 0) {
+        setPracticeAreas(profile.practiceAreas)
+      }
+      if (profile.courtsCovered && profile.courtsCovered.length > 0) {
+        setCourtsCovered(profile.courtsCovered)
+      }
+      if (profile.weeklyAvailability && profile.weeklyAvailability.length > 0) {
+        setWeeklyAvailability(profile.weeklyAvailability)
+      }
+      if (profile.yearsOfPractice) {
+        setYearsOfPractice(profile.yearsOfPractice)
+      }
+      if (profile.callToBarDate) {
+        setCallToBarDate(profile.callToBarDate)
+      }
+      if (profile.bio) {
+        setBio(profile.bio)
+      }
     }
-  }, [])
+  }, [profile])
 
   const togglePracticeArea = (area: string) => {
     setPracticeAreas((prev) =>
@@ -127,8 +145,39 @@ function AssistingDashboardIndex() {
   }
 
   const handleSaveProfile = () => {
-    localStorage.setItem('counsel_assisting_profile_filled', 'true')
-    setIsProfileFilled(true)
+    if (practiceAreas.length === 0) {
+      toast.error('Please select at least one practice area.')
+      return
+    }
+    if (courtsCovered.length === 0) {
+      toast.error('Please select at least one court covered.')
+      return
+    }
+    if (!bio.trim()) {
+      toast.error('Please write a brief bio or professional summary.')
+      return
+    }
+
+    updateProfile(
+      {
+        practiceAreas,
+        courtsCovered,
+        weeklyAvailability,
+        yearsOfPractice: yearsOfPractice.trim() || '5',
+        callToBarDate: callToBarDate.trim() || '2019',
+        bio: bio.trim(),
+      },
+      {
+        onSuccess: () => {
+          localStorage.setItem('counsel_assisting_profile_filled', 'true')
+          setIsProfileFilled(true)
+          toast.success('Assisting profile saved! Tasks and proposals are now unlocked.')
+        },
+        onError: () => {
+          toast.error('Failed to save profile. Please try again.')
+        },
+      },
+    )
   }
 
   // const handleResetProfile = () => {
@@ -625,9 +674,11 @@ function AssistingDashboardIndex() {
               <button
                 type="button"
                 onClick={handleSaveProfile}
-                className="h-11 px-7 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs active:scale-[0.99]"
+                disabled={isUpdatingProfile}
+                className="h-11 px-7 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Save &amp; Browse Tasks
+                {isUpdatingProfile && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{isUpdatingProfile ? 'Saving Profile...' : 'Save & Browse Tasks'}</span>
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Hourglass,
+  AlertCircle,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { useTaskById } from '#/hooks/useTasks'
@@ -10,6 +11,7 @@ import { useCreateProposal } from '#/hooks/useProposals'
 import { useAssistingProfile } from '#/hooks/useProfile'
 import { useRegistrationStore } from '#/store/useRegistrationStore'
 import { formatCurrency } from '#/lib/formatters'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/apply/$taskId',
@@ -88,8 +90,19 @@ function SubmitProposalPage() {
   )
   const [isSubmittedModalOpen, setIsSubmittedModalOpen] = useState(false)
 
+  const isProfileComplete = Boolean(
+    profile?.isProfileComplete ||
+    (profile?.practiceAreas && profile.practiceAreas.length > 0 && profile?.bio && profile.bio.trim().length > 0) ||
+    localStorage.getItem('counsel_assisting_profile_filled') === 'true'
+  )
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isProfileComplete) {
+      toast.error('Please complete your assisting lawyer profile before submitting proposals.')
+      navigate({ to: '/assisting-dashboard' })
+      return
+    }
     createProposal(
       {
         quotedFee: quotedFee.startsWith('₦') ? quotedFee : `₦${quotedFee}`,
@@ -138,6 +151,27 @@ function SubmitProposalPage() {
             </p>
           </div>
         </div>
+
+        {/* Incomplete Profile Alert Banner */}
+        {!isProfileComplete && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+              <div>
+                <p className="font-semibold text-sm">Incomplete Assisting Lawyer Profile</p>
+                <p className="text-xs text-amber-700">
+                  You must complete your assisting lawyer profile (practice areas and bio) before you can submit proposals.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/assisting-dashboard"
+              className="shrink-0 px-4 py-2 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs font-semibold shadow-xs transition"
+            >
+              Complete Profile Now
+            </Link>
+          </div>
+        )}
 
         {/* Task Summary Banner Card */}
         <div className="bg-white border border-gray-150 rounded-2xl p-5 sm:p-6 shadow-[0_2px_15px_rgba(0,0,0,0.015)] w-full flex items-center justify-between gap-4">
