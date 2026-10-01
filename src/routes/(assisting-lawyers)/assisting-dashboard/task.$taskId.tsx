@@ -5,6 +5,7 @@ import { useTaskById } from '#/hooks/useTasks'
 import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
 import { formatCurrency } from '#/lib/formatters'
 import { RichTextContent } from '#/components/ui/RichTextContent'
+import { useAssistingProfile } from '#/hooks/useProfile'
 
 export const Route = createFileRoute(
   '/(assisting-lawyers)/assisting-dashboard/task/$taskId',
@@ -15,6 +16,8 @@ export const Route = createFileRoute(
 function TaskDetailPage() {
   const { taskId } = Route.useParams()
   const navigate = useNavigate()
+  const { data: profile } = useAssistingProfile()
+  const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
   const { data: serverTask } = useTaskById(taskId)
   const { data: myProposals } = useMyProposals()
   const { mutate: createProposal } = useCreateProposal(taskId)
@@ -71,7 +74,7 @@ function TaskDetailPage() {
       {/* Top Welcome Header */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col gap-1 select-none">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">
-          Welcome Oluwarotimi!!
+          Welcome {firstName}!
         </h1>
         <p className="text-xs sm:text-[13px] text-gray-500 font-normal">
           What action are you taking today

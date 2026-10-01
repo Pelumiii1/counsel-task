@@ -31,7 +31,11 @@ function NotificationsPage() {
     }
 
     if (item.link) {
-      navigate({ to: item.link as any })
+      let target = item.link
+      if (target.startsWith('/dashboard/')) {
+        target = target.replace('/dashboard/', '/engaging-dashboard/')
+      }
+      navigate({ to: target as any })
     }
   }
 

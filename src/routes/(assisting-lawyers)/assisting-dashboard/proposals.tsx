@@ -1,11 +1,13 @@
 import { useAssistingProfile } from '#/hooks/useProfile'
-import { useMyProposals } from '#/hooks/useProposals'
+import { useMyProposals, useWithdrawProposal } from '#/hooks/useProposals'
 import { formatCurrency } from '#/lib/formatters'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Search,
   SlidersHorizontal,
-  X
+  X,
+  Undo2,
+  Loader2,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -23,7 +25,7 @@ interface Proposal {
   client: string
   feeQuoted: string
   dateSent: string
-  status: 'Awaiting response' | 'Declined' | 'Selected'
+  status: 'Awaiting response' | 'Declined' | 'Selected' | 'Withdrawn'
   note: string
   declineReason?: string
 }
@@ -35,6 +37,7 @@ function MyProposalsPage() {
   const [selectedProposalForModal, setSelectedProposalForModal] =
     useState<Proposal | null>(null)
   const { data: serverProposals } = useMyProposals()
+  const { mutate: withdrawProposal, isPending: isWithdrawing } = useWithdrawProposal()
   const { data: profile } = useAssistingProfile()
   const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
 
@@ -85,8 +88,21 @@ function MyProposalsPage() {
             Selected
           </span>
         )
+      case 'Withdrawn':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-150 text-gray-600 select-none">
+            Withdrawn
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 select-none">
+            {status}
+          </span>
+        )
     }
   }
+
 
   const handleRowClick = (proposal: Proposal) => {
     setSelectedProposalForModal(proposal)
@@ -145,7 +161,7 @@ function MyProposalsPage() {
 
             {showStatusDropdown && (
               <div className="absolute top-12 left-0 z-30 bg-white border border-gray-150 rounded-xl shadow-lg p-1.5 min-w-42.5 flex flex-col gap-1 text-xs">
-                {['All', 'Awaiting response', 'Selected', 'Declined'].map((s) => (
+                {['All', 'Awaiting response', 'Selected', 'Declined', 'Withdrawn'].map((s) => (
                   <button
                     key={s}
                     type="button"
@@ -280,7 +296,30 @@ function MyProposalsPage() {
               </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-end">
+            <div className="pt-2 flex items-center justify-end gap-3">
+              {selectedProposalForModal.status === 'Awaiting response' && (
+                <button
+                  type="button"
+                  disabled={isWithdrawing}
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to withdraw this proposal?')) {
+                      withdrawProposal(selectedProposalForModal.id, {
+                        onSuccess: () => {
+                          setSelectedProposalForModal(null)
+                        },
+                      })
+                    }
+                  }}
+                  className="h-10 px-4 rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isWithdrawing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Undo2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>Withdraw Proposal</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setSelectedProposalForModal(null)}

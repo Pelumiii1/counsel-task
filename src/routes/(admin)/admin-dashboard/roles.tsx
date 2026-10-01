@@ -43,9 +43,10 @@ export const Route = createFileRoute('/(admin)/admin-dashboard/roles')({
 
 type ActiveTab = 'roles' | 'staff' | 'matrix'
 
-export default function AdminRolesPage() {
+function AdminRolesPage() {
   const { data: roles = [], isLoading: isLoadingRoles } = useAdminRoles()
-  const { data: permissions = [], isLoading: isLoadingPermissions } = useAdminPermissions()
+  const { data: permissions = [], isLoading: isLoadingPermissions } =
+    useAdminPermissions()
   const { data: myRole, isLoading: isLoadingMyRole } = useMyRole()
   const { data: staffList = [], isLoading: isLoadingStaff } = useAdminStaff()
 
@@ -112,7 +113,7 @@ export default function AdminRolesPage() {
   // Toggle permission in form
   const handleTogglePermission = (code: string) => {
     setFormPermissions((prev) =>
-      prev.includes(code) ? prev.filter((p) => p !== code) : [...prev, code]
+      prev.includes(code) ? prev.filter((p) => p !== code) : [...prev, code],
     )
   }
 
@@ -134,7 +135,10 @@ export default function AdminRolesPage() {
     }
     const code = formCode.trim()
       ? formCode.trim().toUpperCase().replace(/\s+/g, '_')
-      : formName.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_')
+      : formName
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '_')
 
     createRoleMutation.mutate(
       {
@@ -147,7 +151,7 @@ export default function AdminRolesPage() {
         onSuccess: () => {
           setIsCreateModalOpen(false)
         },
-      }
+      },
     )
   }
 
@@ -173,7 +177,7 @@ export default function AdminRolesPage() {
         onSuccess: () => {
           setEditingRole(null)
         },
-      }
+      },
     )
   }
 
@@ -220,7 +224,7 @@ export default function AdminRolesPage() {
         onSuccess: () => {
           setIsCreateStaffModalOpen(false)
         },
-      }
+      },
     )
   }
 
@@ -230,7 +234,8 @@ export default function AdminRolesPage() {
       (r) =>
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        (r.description &&
+          r.description.toLowerCase().includes(searchQuery.toLowerCase())),
     )
   }, [roles, searchQuery])
 
@@ -240,7 +245,7 @@ export default function AdminRolesPage() {
       (s) =>
         s.fullName.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
         s.email.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
-        s.roleName.toLowerCase().includes(staffSearchQuery.toLowerCase())
+        s.roleName.toLowerCase().includes(staffSearchQuery.toLowerCase()),
     )
   }, [staffList, staffSearchQuery])
 
@@ -263,7 +268,8 @@ export default function AdminRolesPage() {
             </span>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-[#475467]">
-            Configure administrative roles, granular permission scopes, and staff member access levels.
+            Configure administrative roles, granular permission scopes, and
+            staff member access levels.
           </p>
         </div>
 
@@ -303,7 +309,8 @@ export default function AdminRolesPage() {
                 )}
               </div>
               <p className="mt-0.5 text-xs text-gray-600">
-                {myRole.description || 'Full platform access and management privileges.'}
+                {myRole.description ||
+                  'Full platform access and management privileges.'}
               </p>
             </div>
           </div>
@@ -313,7 +320,9 @@ export default function AdminRolesPage() {
             <span>
               Authorized Permissions:{' '}
               <strong className="text-gray-900 font-semibold">
-                {myRole.code === 'SUPER_ADMIN' ? 'All (Wildcard *)' : `${myRole.permissions?.length || 0} active`}
+                {myRole.code === 'SUPER_ADMIN'
+                  ? 'All (Wildcard *)'
+                  : `${myRole.permissions?.length || 0} active`}
               </strong>
             </span>
           </div>
@@ -324,48 +333,67 @@ export default function AdminRolesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Defined Roles</span>
+            <span className="text-xs font-medium text-gray-500">
+              Defined Roles
+            </span>
             <div className="p-2 rounded-xl bg-gray-100 text-gray-700">
               <Layers className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-semibold text-[#101828]">{totalRolesCount}</p>
+          <p className="mt-2 text-2xl font-semibold text-[#101828]">
+            {totalRolesCount}
+          </p>
           <p className="mt-1 text-xs text-gray-500">
-            {roles.filter((r) => r.isSystem).length} System, {customRolesCount} Custom
+            {roles.filter((r) => r.isSystem).length} System, {customRolesCount}{' '}
+            Custom
           </p>
         </div>
 
         <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Staff Assigned</span>
+            <span className="text-xs font-medium text-gray-500">
+              Staff Assigned
+            </span>
             <div className="p-2 rounded-xl bg-[#E8F7F5] text-[#00726D]">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-semibold text-[#101828]">{totalStaffCount}</p>
+          <p className="mt-2 text-2xl font-semibold text-[#101828]">
+            {totalStaffCount}
+          </p>
           <p className="mt-1 text-xs text-gray-500">Active administrators</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">System Permissions</span>
+            <span className="text-xs font-medium text-gray-500">
+              System Permissions
+            </span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <KeyRound className="w-4 h-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-semibold text-[#101828]">{permissions.length}</p>
-          <p className="mt-1 text-xs text-gray-500">Granular feature capabilities</p>
+          <p className="mt-2 text-2xl font-semibold text-[#101828]">
+            {permissions.length}
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Granular feature capabilities
+          </p>
         </div>
 
         <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Enforcement Status</span>
+            <span className="text-xs font-medium text-gray-500">
+              Enforcement Status
+            </span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
           <p className="mt-2 text-2xl font-semibold text-[#101828]">Active</p>
-          <p className="mt-1 text-xs text-emerald-600 font-medium">Backend & UI strictly gated</p>
+          <p className="mt-1 text-xs text-emerald-600 font-medium">
+            Backend & UI strictly gated
+          </p>
         </div>
       </div>
 
@@ -473,13 +501,15 @@ export default function AdminRolesPage() {
                         {role.name}
                       </h3>
                       <p className="mt-1 text-xs text-gray-500 line-clamp-2 min-h-[32px]">
-                        {role.description || 'No specific description provided.'}
+                        {role.description ||
+                          'No specific description provided.'}
                       </p>
 
                       {/* Permissions Chips */}
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-                          Access Privileges ({isSuperAdmin ? 'All (*)' : role.permissions.length})
+                          Access Privileges (
+                          {isSuperAdmin ? 'All (*)' : role.permissions.length})
                         </span>
                         <div className="mt-2 flex flex-wrap gap-1.5 min-h-[48px]">
                           {isSuperAdmin ? (
@@ -488,7 +518,9 @@ export default function AdminRolesPage() {
                               All Administrative Capabilities
                             </span>
                           ) : role.permissions.length === 0 ? (
-                            <span className="text-xs text-gray-400 italic">No permissions assigned</span>
+                            <span className="text-xs text-gray-400 italic">
+                              No permissions assigned
+                            </span>
                           ) : (
                             role.permissions.map((perm) => (
                               <span
@@ -508,7 +540,9 @@ export default function AdminRolesPage() {
                       <div className="flex items-center gap-1.5 text-gray-500">
                         <Users className="w-3.5 h-3.5 text-gray-400" />
                         <span>
-                          <strong className="font-semibold text-gray-900">{role.membersCount}</strong>{' '}
+                          <strong className="font-semibold text-gray-900">
+                            {role.membersCount}
+                          </strong>{' '}
                           staff {role.membersCount === 1 ? 'member' : 'members'}
                         </span>
                       </div>
@@ -585,20 +619,31 @@ export default function AdminRolesPage() {
                 <tbody className="divide-y divide-gray-100">
                   {isLoadingStaff ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
+                      <td
+                        colSpan={4}
+                        className="px-6 py-12 text-center text-gray-400"
+                      >
                         <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#00726D]" />
-                        <span className="mt-2 block text-xs">Loading staff members...</span>
+                        <span className="mt-2 block text-xs">
+                          Loading staff members...
+                        </span>
                       </td>
                     </tr>
                   ) : filteredStaff.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-400 text-sm">
+                      <td
+                        colSpan={4}
+                        className="px-6 py-12 text-center text-gray-400 text-sm"
+                      >
                         No admin staff found.
                       </td>
                     </tr>
                   ) : (
                     filteredStaff.map((staff) => (
-                      <tr key={staff.userId} className="hover:bg-gray-50/50 transition">
+                      <tr
+                        key={staff.userId}
+                        className="hover:bg-gray-50/50 transition"
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#00726D]/10 text-[#00726D] font-bold text-xs flex items-center justify-center">
@@ -612,13 +657,19 @@ export default function AdminRolesPage() {
                                 : 'AD'}
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{staff.fullName}</p>
-                              <span className="text-[11px] text-gray-400">Admin User #{staff.userId}</span>
+                              <p className="font-medium text-gray-900">
+                                {staff.fullName}
+                              </p>
+                              <span className="text-[11px] text-gray-400">
+                                Admin User #{staff.userId}
+                              </span>
                             </div>
                           </div>
                         </td>
 
-                        <td className="px-6 py-4 text-gray-600 font-mono text-xs">{staff.email}</td>
+                        <td className="px-6 py-4 text-gray-600 font-mono text-xs">
+                          {staff.email}
+                        </td>
 
                         <td className="px-6 py-4">
                           <span
@@ -656,7 +707,9 @@ export default function AdminRolesPage() {
                               ))}
                             </select>
                           ) : (
-                            <span className="text-xs text-gray-400 italic">Read-only</span>
+                            <span className="text-xs text-gray-400 italic">
+                              Read-only
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -678,7 +731,8 @@ export default function AdminRolesPage() {
                 Functional Access Control Matrix
               </h3>
               <p className="text-xs text-gray-500">
-                Detailed side-by-side comparison of active permissions across all defined roles.
+                Detailed side-by-side comparison of active permissions across
+                all defined roles.
               </p>
             </div>
           </div>
@@ -687,11 +741,18 @@ export default function AdminRolesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase tracking-wider font-semibold">
                 <tr>
-                  <th className="px-5 py-3.5 min-w-[200px]">Permission / Capability</th>
+                  <th className="px-5 py-3.5 min-w-[200px]">
+                    Permission / Capability
+                  </th>
                   <th className="px-4 py-3.5">Module</th>
                   {roles.map((r) => (
-                    <th key={r.id} className="px-4 py-3.5 text-center min-w-[120px]">
-                      <span className="block font-semibold text-gray-900">{r.name}</span>
+                    <th
+                      key={r.id}
+                      className="px-4 py-3.5 text-center min-w-[120px]"
+                    >
+                      <span className="block font-semibold text-gray-900">
+                        {r.name}
+                      </span>
                       <span className="text-[10px] text-gray-400 font-normal font-mono">
                         {r.code}
                       </span>
@@ -701,10 +762,15 @@ export default function AdminRolesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {permissions.map((perm) => (
-                  <tr key={perm.code} className="hover:bg-gray-50/50 transition">
+                  <tr
+                    key={perm.code}
+                    className="hover:bg-gray-50/50 transition"
+                  >
                     <td className="px-5 py-3">
                       <p className="font-semibold text-gray-900">{perm.code}</p>
-                      <span className="text-[11px] text-gray-500">{perm.description}</span>
+                      <span className="text-[11px] text-gray-500">
+                        {perm.description}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
@@ -748,7 +814,9 @@ export default function AdminRolesPage() {
                   <Plus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900">Create Custom Role</h3>
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Create Custom Role
+                  </h3>
                   <p className="text-xs text-gray-500">
                     Define a specialized role with custom permission privileges.
                   </p>
@@ -832,35 +900,46 @@ export default function AdminRolesPage() {
                 </div>
 
                 <div className="max-h-60 overflow-y-auto rounded-xl border border-gray-200 p-3 divide-y divide-gray-100 bg-gray-50/50">
-                  {Object.entries(permissionsByModule).map(([moduleName, perms]) => (
-                    <div key={moduleName} className="py-2.5 first:pt-0 last:pb-0">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                        {moduleName}
-                      </span>
-                      <div className="mt-1.5 space-y-2">
-                        {perms.map((p) => {
-                          const isChecked = formPermissions.includes(p.code)
-                          return (
-                            <label
-                              key={p.code}
-                              className="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-white transition cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => handleTogglePermission(p.code)}
-                                className="mt-0.5 rounded border-gray-300 text-[#00726D] focus:ring-[#00726D] cursor-pointer"
-                              />
-                              <div className="text-xs">
-                                <span className="font-semibold text-gray-900">{p.code}</span>
-                                <p className="text-gray-500 text-[11px]">{p.description}</p>
-                              </div>
-                            </label>
-                          )
-                        })}
+                  {Object.entries(permissionsByModule).map(
+                    ([moduleName, perms]) => (
+                      <div
+                        key={moduleName}
+                        className="py-2.5 first:pt-0 last:pb-0"
+                      >
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                          {moduleName}
+                        </span>
+                        <div className="mt-1.5 space-y-2">
+                          {perms.map((p) => {
+                            const isChecked = formPermissions.includes(p.code)
+                            return (
+                              <label
+                                key={p.code}
+                                className="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-white transition cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() =>
+                                    handleTogglePermission(p.code)
+                                  }
+                                  className="mt-0.5 rounded border-gray-300 text-[#00726D] focus:ring-[#00726D] cursor-pointer"
+                                />
+                                <div className="text-xs">
+                                  <span className="font-semibold text-gray-900">
+                                    {p.code}
+                                  </span>
+                                  <p className="text-gray-500 text-[11px]">
+                                    {p.description}
+                                  </p>
+                                </div>
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -903,7 +982,9 @@ export default function AdminRolesPage() {
                   <h3 className="text-base font-semibold text-gray-900">
                     Edit Permissions: {editingRole.name}
                   </h3>
-                  <p className="text-xs text-gray-500 font-mono">{editingRole.code}</p>
+                  <p className="text-xs text-gray-500 font-mono">
+                    {editingRole.code}
+                  </p>
                 </div>
               </div>
               <button
@@ -925,7 +1006,9 @@ export default function AdminRolesPage() {
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  disabled={editingRole.isSystem && editingRole.code === 'SUPER_ADMIN'}
+                  disabled={
+                    editingRole.isSystem && editingRole.code === 'SUPER_ADMIN'
+                  }
                   className="w-full h-10 px-3.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00726D]/20 focus:border-[#00726D] transition shadow-2xs disabled:bg-gray-100"
                 />
               </div>
@@ -948,7 +1031,9 @@ export default function AdminRolesPage() {
                   <label className="block text-xs font-semibold text-gray-700">
                     Permissions ({formPermissions.length} selected)
                   </label>
-                  {!(editingRole.isSystem && editingRole.code === 'SUPER_ADMIN') && (
+                  {!(
+                    editingRole.isSystem && editingRole.code === 'SUPER_ADMIN'
+                  ) && (
                     <div className="flex items-center gap-2 text-xs">
                       <button
                         type="button"
@@ -975,41 +1060,53 @@ export default function AdminRolesPage() {
                     <div>
                       <p className="font-semibold">Full Super Admin Access</p>
                       <p className="text-[11px] text-emerald-700">
-                        The Super Admin role inherently holds all platform permissions via the wildcard scope.
+                        The Super Admin role inherently holds all platform
+                        permissions via the wildcard scope.
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="max-h-60 overflow-y-auto rounded-xl border border-gray-200 p-3 divide-y divide-gray-100 bg-gray-50/50">
-                    {Object.entries(permissionsByModule).map(([moduleName, perms]) => (
-                      <div key={moduleName} className="py-2.5 first:pt-0 last:pb-0">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                          {moduleName}
-                        </span>
-                        <div className="mt-1.5 space-y-2">
-                          {perms.map((p) => {
-                            const isChecked = formPermissions.includes(p.code)
-                            return (
-                              <label
-                                key={p.code}
-                                className="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-white transition cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() => handleTogglePermission(p.code)}
-                                  className="mt-0.5 rounded border-gray-300 text-[#00726D] focus:ring-[#00726D] cursor-pointer"
-                                />
-                                <div className="text-xs">
-                                  <span className="font-semibold text-gray-900">{p.code}</span>
-                                  <p className="text-gray-500 text-[11px]">{p.description}</p>
-                                </div>
-                              </label>
-                            )
-                          })}
+                    {Object.entries(permissionsByModule).map(
+                      ([moduleName, perms]) => (
+                        <div
+                          key={moduleName}
+                          className="py-2.5 first:pt-0 last:pb-0"
+                        >
+                          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                            {moduleName}
+                          </span>
+                          <div className="mt-1.5 space-y-2">
+                            {perms.map((p) => {
+                              const isChecked = formPermissions.includes(p.code)
+                              return (
+                                <label
+                                  key={p.code}
+                                  className="flex items-start gap-2.5 p-1.5 rounded-lg hover:bg-white transition cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() =>
+                                      handleTogglePermission(p.code)
+                                    }
+                                    className="mt-0.5 rounded border-gray-300 text-[#00726D] focus:ring-[#00726D] cursor-pointer"
+                                  />
+                                  <div className="text-xs">
+                                    <span className="font-semibold text-gray-900">
+                                      {p.code}
+                                    </span>
+                                    <p className="text-gray-500 text-[11px]">
+                                      {p.description}
+                                    </p>
+                                  </div>
+                                </label>
+                              )
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -1048,11 +1145,14 @@ export default function AdminRolesPage() {
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">Delete Custom Role</h3>
+              <h3 className="text-base font-semibold text-gray-900">
+                Delete Custom Role
+              </h3>
               <p className="mt-1 text-xs text-gray-500">
                 Are you sure you want to delete the role{' '}
-                <strong className="text-gray-800">{deletingRole.name}</strong>? Members assigned to
-                this role will be automatically reassigned to the default Operations role.
+                <strong className="text-gray-800">{deletingRole.name}</strong>?
+                Members assigned to this role will be automatically reassigned
+                to the default Operations role.
               </p>
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -1069,7 +1169,9 @@ export default function AdminRolesPage() {
                 disabled={deleteRoleMutation.isPending}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-xs font-medium text-white hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
               >
-                {deleteRoleMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                {deleteRoleMutation.isPending && (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                )}
                 <span>Confirm Delete</span>
               </button>
             </div>
@@ -1086,9 +1188,12 @@ export default function AdminRolesPage() {
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900">Add Staff Member</h3>
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Add Staff Member
+                  </h3>
                   <p className="text-xs text-gray-500">
-                    Provision a new administrative user and assign their access role.
+                    Provision a new administrative user and assign their access
+                    role.
                   </p>
                 </div>
               </div>
@@ -1158,13 +1263,15 @@ export default function AdminRolesPage() {
                   className="w-full h-10 px-3.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-mono text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00726D]/20 focus:border-[#00726D] transition shadow-2xs"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
-                  If left empty, will default to <strong className="font-mono text-gray-600">Staff123!</strong>
+                  If left empty, will default to{' '}
+                  <strong className="font-mono text-gray-600">Staff123!</strong>
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Assigned Administrative Role <span className="text-red-500">*</span>
+                  Assigned Administrative Role{' '}
+                  <span className="text-red-500">*</span>
                 </label>
                 <select
                   required
@@ -1172,7 +1279,9 @@ export default function AdminRolesPage() {
                   onChange={(e) => setStaffRoleId(Number(e.target.value))}
                   className="w-full h-10 px-3.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00726D]/20 focus:border-[#00726D] transition shadow-2xs cursor-pointer"
                 >
-                  <option value="" disabled>Select a role...</option>
+                  <option value="" disabled>
+                    Select a role...
+                  </option>
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name} ({r.code})

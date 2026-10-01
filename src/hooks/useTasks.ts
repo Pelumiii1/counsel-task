@@ -23,6 +23,8 @@ export interface TaskItem {
   createdAt?: string
   updatedAt?: string
   paidAt?: string
+  rating?: number
+  feedback?: string
 }
 
 export interface CreateTaskPayload {
@@ -42,6 +44,17 @@ export function useTasks() {
     queryKey: ['tasks'],
     queryFn: async () => {
       const response = await apiClient.get<TaskItem[]>('/assisting-lawyer/tasks')
+      return response.data
+    },
+  })
+}
+
+// Fetch tasks assigned to / worked on by current assisting lawyer
+export function useAssistingMyTasks() {
+  return useQuery({
+    queryKey: ['assisting-my-tasks'],
+    queryFn: async () => {
+      const response = await apiClient.get<TaskItem[]>('/assisting-lawyer/my-tasks')
       return response.data
     },
   })
@@ -120,9 +133,10 @@ export function useApproveTaskCompletion(taskId: string | number | undefined) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (payload?: { rating?: number; feedback?: string }) => {
       const response = await apiClient.post<{ success: boolean; message: string; data?: TaskItem }>(
         `/engaging-lawyer/tasks/${taskId}/approve`,
+        payload || {},
       )
       return response.data
     },
@@ -130,6 +144,7 @@ export function useApproveTaskCompletion(taskId: string | number | undefined) {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      queryClient.invalidateQueries({ queryKey: ['assisting-profile'] })
       toast.success(data.message || 'Task approved successfully!')
     },
     onError: (error: any) => {
@@ -163,4 +178,29 @@ export function useRequestTaskChanges(taskId: string | number | undefined) {
     },
   })
 }
+
+// Engaging lawyer cancels an unassigned open brief
+export function useCancelTask() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (taskId: string | number) => {
+      const response = await apiClient.post<{ success: boolean; message: string; data?: TaskItem }>(
+        `/engaging-lawyer/tasks/${taskId}/cancel`,
+      )
+      return response.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['task'] })
+      toast.success(data.message || 'Brief cancelled successfully.')
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to cancel brief.'
+      toast.error(msg)
+    },
+  })
+}
+
 

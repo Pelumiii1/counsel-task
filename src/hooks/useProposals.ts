@@ -110,3 +110,28 @@ export function useSelectProposal() {
     },
   })
 }
+
+// Assisting lawyer withdraws a submitted proposal
+export function useWithdrawProposal() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (proposalId: string | number) => {
+      const response = await apiClient.post<{ success: boolean; message: string; data?: ProposalItem }>(
+        `/assisting-lawyer/proposals/${proposalId}/withdraw`,
+      )
+      return response.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['task-proposals'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['my-proposals'] })
+      toast.success(data.message || 'Proposal withdrawn successfully.')
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || 'Failed to withdraw proposal.'
+      toast.error(msg)
+    },
+  })
+}
+

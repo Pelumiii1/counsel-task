@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   FileText,
@@ -12,6 +13,7 @@ import {
   ArrowRight,
   Hourglass,
   Lock as LockIcon,
+  ExternalLink,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { toast } from 'sonner'
@@ -26,6 +28,8 @@ import {
   type MessageItem,
 } from '#/hooks/useMessages'
 import { useTaskById, useRequestTaskCompletion } from '#/hooks/useTasks'
+import { useWebSocketChat } from '#/hooks/useWebSocketChat'
+import { uploadFile } from '#/lib/fileUpload'
 
 export function MessagesView({
   taskId,
@@ -108,13 +112,26 @@ export function MessagesView({
   const isCompleted = isLocalCompleted || taskStatus?.toLowerCase() === 'completed'
   const isAwaitingReview = !isCompleted && (taskStatus === 'Awaiting review' || taskStatus === 'Awaiting Review')
 
+  const queryClient = useQueryClient()
   const { data: serverMessages, isLoading: isMessagesLoading } = useThreadMessages(
     activeConvo ? activeConvo.otherUserId : undefined,
     activeConvo ? activeConvo.taskId : taskId ? Number(taskId) : undefined,
     role,
   )
 
+  const handleIncomingWsMessage = useCallback((_msg: any) => {
+    // Instantly invalidate caches so real-time push messages appear immediately
+    queryClient.invalidateQueries({ queryKey: ['messages'] })
+    queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  }, [queryClient])
+
+  const { isConnected: isWsConnected } = useWebSocketChat({
+    taskId: currentTaskId,
+    onMessageReceived: handleIncomingWsMessage,
+  })
+
   const { mutate: sendMessage, isPending: isSending } = useSendMessage(role)
+  const [isUploadingFile, setIsUploadingFile] = useState(false)
 
   // Scroll to bottom of container when messages change
   useEffect(() => {
@@ -138,40 +155,66 @@ export function MessagesView({
     })
   }
 
-  // Handle File Upload
+  // Handle File Upload via Cloudinary / Local storage backend
   const triggerFileUpload = () => {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !activeConvo) return
 
+    e.target.value = ''
     const sizeInMB = (file.size / (1024 * 1024)).toFixed(1)
-    const fileName = file.name
-    const fileSize = `${sizeInMB} MB`
+    const toastId = toast.loading(`Uploading ${file.name}...`)
+    setIsUploadingFile(true)
 
-    sendMessage({
-      recipientId: activeConvo.otherUserId,
-      taskId: activeConvo.taskId || (taskId ? Number(taskId) : undefined),
-      content: `Shared document: ${fileName}`,
-      fileName,
-      fileSize,
-      role,
-    })
+    try {
+      const uploadRes = await uploadFile(file, 'attachments')
+      toast.dismiss(toastId)
+      toast.success('Document uploaded')
+
+      sendMessage({
+        recipientId: activeConvo.otherUserId,
+        taskId: activeConvo.taskId || (taskId ? Number(taskId) : undefined),
+        content: `Shared document: ${file.name}`,
+        fileName: file.name,
+        fileSize: `${sizeInMB} MB`,
+        attachmentUrl: uploadRes.url,
+        role,
+      })
+    } catch (err: any) {
+      toast.dismiss(toastId)
+      toast.error(err?.message || 'Failed to upload document')
+    } finally {
+      setIsUploadingFile(false)
+    }
   }
 
-  const handleRequestCompletionSubmit = (e: React.FormEvent) => {
+  const handleRequestCompletionSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!activeConvo) return
 
     setIsRequestingCompletion(true)
     const noteText = completionNote.trim() || 'I have completed the brief. Please review and confirm completion.'
+    let attachmentUrl: string | undefined = undefined
     const fileName = completionFile ? completionFile.name : undefined
     const fileSize = completionFile ? `${(completionFile.size / (1024 * 1024)).toFixed(1)} MB` : undefined
 
+    if (completionFile) {
+      const uploadToast = toast.loading('Uploading evidence attachment...')
+      try {
+        const uploadRes = await uploadFile(completionFile, 'evidence')
+        attachmentUrl = uploadRes.url
+        toast.dismiss(uploadToast)
+      } catch (err: any) {
+        toast.dismiss(uploadToast)
+        toast.error('File upload failed, proceeding with note only.')
+      }
+    }
+
     requestCompletion(
-      { note: noteText },
+      { note: noteText, attachmentUrl },
       {
         onSuccess: () => {
           sendMessage({
@@ -180,6 +223,7 @@ export function MessagesView({
             content: `Completion Confirmation Requested: ${noteText}`,
             fileName,
             fileSize,
+            attachmentUrl,
             role,
           })
 
@@ -347,6 +391,12 @@ export function MessagesView({
                       </span>
                     </div>
                   </div>
+                  {isWsConnected && (
+                    <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 select-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Live</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Fixed Banner / Action section (Completed, Awaiting Review, or Request Completion) */}
@@ -430,8 +480,14 @@ export function MessagesView({
                           >
                             {msg.content}
                             {msg.fileName && (
-                              <div
-                                className={`mt-2 pt-2 border-t flex items-center gap-2 ${isUser
+                              <a
+                                href={msg.attachmentUrl || '#'}
+                                target={msg.attachmentUrl ? '_blank' : undefined}
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  if (!msg.attachmentUrl) e.preventDefault()
+                                }}
+                                className={`mt-2 pt-2 border-t flex items-center gap-2 hover:opacity-80 transition cursor-pointer ${isUser
                                   ? 'border-white/20'
                                   : role === 'assisting'
                                     ? 'border-gray-300/50'
@@ -443,7 +499,10 @@ export function MessagesView({
                                 {msg.fileSize && (
                                   <span className="text-[10px] opacity-80">({msg.fileSize})</span>
                                 )}
-                              </div>
+                                {msg.attachmentUrl && (
+                                  <ExternalLink className="w-3 h-3 opacity-70 ml-auto shrink-0" />
+                                )}
+                              </a>
                             )}
                             <span
                               className={`text-[11px] block font-normal mt-1 select-none font-secondary ${isUser
@@ -518,36 +577,57 @@ export function MessagesView({
                   {sharedFiles.length === 0 ? (
                     <div className="py-4 text-xs text-gray-400">No documents shared yet.</div>
                   ) : (
-                    sharedFiles.map((file, idx) => (
-                      <div key={idx} className="py-4.5 flex items-center gap-3">
-                        {file.name.toLowerCase().endsWith('.pdf') ? (
-                          <img
-                            src={PDF}
-                            alt="PDF"
-                            className="w-8 h-8 object-contain"
-                          />
-                        ) : file.name.toLowerCase().endsWith('.jpg') ||
-                          file.name.toLowerCase().endsWith('.jpeg') ||
-                          file.name.toLowerCase().endsWith('.png') ? (
-                          <img
-                            src={JPG}
-                            alt="JPG"
-                            className="w-8 h-8 object-contain"
-                          />
-                        ) : (
-                          <FileText className="w-5 h-5 stroke-[1.8] text-gray-400" />
-                        )}
+                    sharedFiles.map((file, idx) => {
+                      const fileItemContent = (
+                        <>
+                          {file.name.toLowerCase().endsWith('.pdf') ? (
+                            <img
+                              src={PDF}
+                              alt="PDF"
+                              className="w-8 h-8 object-contain shrink-0"
+                            />
+                          ) : file.name.toLowerCase().endsWith('.jpg') ||
+                            file.name.toLowerCase().endsWith('.jpeg') ||
+                            file.name.toLowerCase().endsWith('.png') ? (
+                            <img
+                              src={JPG}
+                              alt="JPG"
+                              className="w-8 h-8 object-contain shrink-0"
+                            />
+                          ) : (
+                            <FileText className="w-5 h-5 stroke-[1.8] text-gray-400 shrink-0" />
+                          )}
 
-                        <div className="flex flex-col items-start">
-                          <span className="text-[14px] font-bold text-gray-800 leading-snug font-secondary">
-                            {file.name}
-                          </span>
-                          <span className="text-[12px] text-black font-normal mt-1">
-                            {file.size}
-                          </span>
+                          <div className="flex flex-col items-start min-w-0 flex-1">
+                            <span className="text-[14px] font-bold text-gray-800 leading-snug font-secondary truncate w-full text-left">
+                              {file.name}
+                            </span>
+                            <span className="text-[12px] text-black font-normal mt-0.5">
+                              {file.size}
+                            </span>
+                          </div>
+                          {file.url && (
+                            <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#00726d] shrink-0 transition" />
+                          )}
+                        </>
+                      )
+
+                      return file.url ? (
+                        <a
+                          key={idx}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="py-3.5 px-2 -mx-2 rounded-xl flex items-center gap-3 hover:bg-gray-50 transition group cursor-pointer"
+                        >
+                          {fileItemContent}
+                        </a>
+                      ) : (
+                        <div key={idx} className="py-3.5 flex items-center gap-3">
+                          {fileItemContent}
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   )}
                 </div>
 

@@ -11,6 +11,7 @@ import {
   requiredMark,
 } from '#/components/engaging-lawyers/constants'
 import { useCreateTask } from '#/hooks/useTasks'
+import { useEngagingProfile } from '#/hooks/useProfile'
 
 export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/post-job')({
   component: PostJobPage,
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/pos
 
 function PostJobPage() {
   const navigate = useNavigate()
+  const { data: profile } = useEngagingProfile()
+  const firstName = profile?.fullName?.trim().split(' ')[0] || 'Counsel'
   const createTaskMutation = useCreateTask()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -88,7 +91,7 @@ function PostJobPage() {
       {/* Welcome Banner Header */}
       <section className="w-full bg-[#f3f4f6]/50 px-6 py-6 sm:px-12 sm:py-8 border-b border-gray-100 flex flex-col gap-1 select-none">
         <h1 className="font-secondary text-xl sm:text-2xl font-semibold text-black leading-tight">
-          Welcome Oluwarotimi!!
+          Welcome {firstName}!
         </h1>
         <p className="font-secondary text-[13px] text-gray-500 font-normal">
           What action are you taking today

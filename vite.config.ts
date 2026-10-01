@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  define: {
+    global: 'window',
+  },
   plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact(), nitro()],
 })
 

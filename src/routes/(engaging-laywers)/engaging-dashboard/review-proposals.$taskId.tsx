@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { ArrowLeft, Users } from 'lucide-react'
+import { ArrowLeft, Users, Trash2, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
 } from '#/components/ui/dialog'
-import { useTaskById } from '#/hooks/useTasks'
+import { useTaskById, useCancelTask } from '#/hooks/useTasks'
 import { useTaskProposals, type ProposalItem } from '#/hooks/useProposals'
 import { RichTextContent } from '#/components/ui/RichTextContent'
 
@@ -56,6 +56,7 @@ function ReviewProposalsPage() {
   const navigate = useNavigate()
   const { data: task, isLoading: isTaskLoading } = useTaskById(taskId)
   const { data: serverProposals, isLoading: isProposalsLoading } = useTaskProposals(taskId)
+  const { mutate: cancelTask, isPending: isCancelling } = useCancelTask()
 
   const proposals = serverProposals || []
   const [selectedProposalId, setSelectedProposalId] = useState<string | number | null>(null)
@@ -97,25 +98,49 @@ function ReviewProposalsPage() {
     )
   }
 
-  console.log("task proposals", proposals)
-
   return (
     <div className="flex flex-col w-full min-h-full font-secondary bg-[#f9fafb] px-6 py-8 sm:px-12">
       {/* Top Navigation & Header */}
-      <div className="flex flex-col gap-3 select-none mb-6">
-        <Link
-          to="/engaging-dashboard"
-          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-200 cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5 stroke-2" />
-        </Link>
-        <h1 className="text-2xl sm:text-[28px] font-bold text-gray-900 leading-tight font-primary">
-          Review proposals
-        </h1>
-        <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed max-w-2xl">
-          {proposals.length} verified {proposals.length === 1 ? 'lawyer has' : 'lawyers have'} applied. Compare their fee,
-          experience, and availability before selecting one.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 select-none mb-6">
+        <div className="flex flex-col gap-3">
+          <Link
+            to="/engaging-dashboard"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-gray-150 hover:text-gray-900 transition duration-200 cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 stroke-2" />
+          </Link>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-gray-900 leading-tight font-primary">
+            Review proposals
+          </h1>
+          <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed max-w-2xl">
+            {proposals.length} verified {proposals.length === 1 ? 'lawyer has' : 'lawyers have'} applied. Compare their fee,
+            experience, and availability before selecting one.
+          </p>
+        </div>
+
+        {task.status === 'Open' && (
+          <button
+            type="button"
+            disabled={isCancelling}
+            onClick={() => {
+              if (window.confirm('Are you sure you want to cancel this open brief? This will close the brief for all lawyers.')) {
+                cancelTask(task.id, {
+                  onSuccess: () => {
+                    navigate({ to: '/engaging-dashboard' })
+                  },
+                })
+              }
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 text-xs sm:text-sm font-semibold transition cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
+          >
+            {isCancelling ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+            <span>Cancel Brief</span>
+          </button>
+        )}
       </div>
 
       {/* Task Summary Card */}

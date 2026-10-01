@@ -10,9 +10,14 @@ import {
   SlidersHorizontal,
   Loader2,
   RotateCw,
+  Star,
+  MessageSquare,
+  ExternalLink,
+  ShieldCheck,
+  Clock,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
-import { useTasks } from '#/hooks/useTasks'
+import { useTasks, useAssistingMyTasks } from '#/hooks/useTasks'
 import { useCreateProposal, useMyProposals } from '#/hooks/useProposals'
 import { useAssistingProfile, useUpdateAssistingProfile } from '#/hooks/useProfile'
 import { useRegistrationStore } from '#/store/useRegistrationStore'
@@ -72,6 +77,14 @@ function AssistingDashboardIndex() {
     isFetching: isTasksFetching,
     refetch: refetchTasks,
   } = useTasks()
+  const {
+    data: myAssistingTasks,
+    isLoading: isMyAssistingTasksLoading,
+    isFetching: isMyAssistingTasksFetching,
+    refetch: refetchAssistingTasks,
+  } = useAssistingMyTasks()
+  const [activeMainTab, setActiveMainTab] = useState<'browse' | 'my-briefs'>('browse')
+  const [briefsFilter, setBriefsFilter] = useState<string>('All')
   const { data: myProposals } = useMyProposals()
   const { mutate: createProposal, isPending: isCreatingProposal } = useCreateProposal(selectedTask ? selectedTask.id : '')
 
@@ -319,186 +332,465 @@ function AssistingDashboardIndex() {
       {/* ========================================================================= */}
       {isProfileFilled ? (
         <section className="flex-1 w-full px-6 py-8 sm:px-12 flex flex-col gap-6">
-          {/* Title and description */}
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-2xl sm:text-[28px] font-semibold text-[#041626] tracking-tight">
-              Browse available tasks
-            </h2>
-            <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal max-w-3xl">
-              Filtered to match your practice areas and locations. Turn on alerts to get
-              notified the moment a new one is posted.
-            </p>
+          {/* Main View Mode Selector: Browse Tasks vs My Briefs */}
+          <div className="flex items-center gap-3 border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => setActiveMainTab('browse')}
+              className={`pb-3 px-3 text-sm font-semibold transition cursor-pointer flex items-center gap-2.5 relative select-none ${activeMainTab === 'browse'
+                  ? 'text-[#00726D]'
+                  : 'text-gray-500 hover:text-gray-800'
+                }`}
+            >
+              <span>Browse Available Tasks</span>
+              <span
+                className={`px-2 py-0.5 text-xs rounded-full font-medium ${activeMainTab === 'browse'
+                    ? 'bg-[#00726D]/10 text-[#00726D]'
+                    : 'bg-gray-100 text-gray-600'
+                  }`}
+              >
+                {filteredTasks.length}
+              </span>
+              {activeMainTab === 'browse' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00726D] rounded-full" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveMainTab('my-briefs')}
+              className={`pb-3 px-3 text-sm font-semibold transition cursor-pointer flex items-center gap-2.5 relative select-none ${activeMainTab === 'my-briefs'
+                  ? 'text-[#00726D]'
+                  : 'text-gray-500 hover:text-gray-800'
+                }`}
+            >
+              <span>My Briefs</span>
+              <span
+                className={`px-2 py-0.5 text-xs rounded-full font-medium ${(myAssistingTasks || []).length > 0
+                    ? 'bg-emerald-100 text-emerald-800 font-bold'
+                    : 'bg-gray-100 text-gray-600'
+                  }`}
+              >
+                {(myAssistingTasks || []).length}
+              </span>
+              {activeMainTab === 'my-briefs' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00726D] rounded-full" />
+              )}
+            </button>
           </div>
 
-          {/* Filter Pills Toolbar */}
-          <div className="w-full bg-white border border-gray-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex items-center gap-2.5 overflow-x-auto">
-            {filterButtons.map((btn) => {
-              const isActive = activeFilter === btn
-              return (
-                <button
-                  key={btn}
-                  type="button"
-                  onClick={() => setActiveFilter(btn)}
-                  className={`h-9 px-4.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none ${isActive
-                    ? 'bg-[#041626] text-white shadow-xs'
-                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
-                    }`}
-                >
-                  {btn}
-                </button>
-              )
-            })}
-          </div>
+          {activeMainTab === 'browse' ? (
+            <>
+              {/* Title and description */}
+              <div className="flex flex-col gap-1.5">
+                <h2 className="text-2xl sm:text-[28px] font-semibold text-[#041626] tracking-tight font-primary">
+                  Browse available tasks
+                </h2>
+                <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal max-w-3xl">
+                  Filtered to match your practice areas and locations. Turn on alerts to get
+                  notified the moment a new one is posted.
+                </p>
+              </div>
 
-          {/* Task Cards List or Empty State */}
-          {isTasksLoading ? (
-            <div className="w-full bg-white border border-gray-150 rounded-2xl p-12 sm:p-16 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center justify-center gap-3 text-center">
-              <Loader2 className="w-8 h-8 text-[#00726D] animate-spin" />
-              <p className="text-sm font-medium text-gray-800">Loading available tasks...</p>
-              <span className="text-xs text-gray-400">Fetching the latest court appearances and legal tasks</span>
-            </div>
-          ) : filteredTasks.length > 0 ? (
-            <div className="flex flex-col gap-5">
-              {filteredTasks.map((task) => {
-                const isApplied = appliedTaskIds.includes(task.id)
+              {/* Filter Pills Toolbar */}
+              <div className="w-full bg-white border border-gray-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex items-center gap-2.5 overflow-x-auto">
+                {filterButtons.map((btn) => {
+                  const isActive = activeFilter === btn
+                  return (
+                    <button
+                      key={btn}
+                      type="button"
+                      onClick={() => setActiveFilter(btn)}
+                      className={`h-9 px-4.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none ${isActive
+                          ? 'bg-[#041626] text-white shadow-xs'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                        }`}
+                    >
+                      {btn}
+                    </button>
+                  )
+                })}
+              </div>
 
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() =>
-                      navigate({
-                        to: '/assisting-dashboard/task/$taskId',
-                        params: { taskId: task.id },
-                      })
-                    }
-                    className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col justify-between gap-4 cursor-pointer"
-                  >
-                    {/* Top Row: Title & Fee */}
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                      <div className="flex flex-col">
-                        <h3 className="text-xl sm:text-[18px] font-medium text-black leading-tight font-primary">
-                          {task.title}
-                        </h3>
-                        <div className="text-xs sm:text-[13px] text-black font-normal mt-1 flex items-center gap-1.5 flex-wrap">
-                          <span>{task.court}</span>
-                          <span>•</span>
-                          <span>{task.deadline}</span>
-                          <span>•</span>
-                          <span>{task.practiceArea}</span>
+              {/* Task Cards List or Empty State */}
+              {isTasksLoading ? (
+                <div className="w-full bg-white border border-gray-150 rounded-2xl p-12 sm:p-16 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center justify-center gap-3 text-center">
+                  <Loader2 className="w-8 h-8 text-[#00726D] animate-spin" />
+                  <p className="text-sm font-medium text-gray-800">Loading available tasks...</p>
+                  <span className="text-xs text-gray-400">Fetching the latest court appearances and legal tasks</span>
+                </div>
+              ) : filteredTasks.length > 0 ? (
+                <div className="flex flex-col gap-5">
+                  {filteredTasks.map((task) => {
+                    const isApplied = appliedTaskIds.includes(task.id)
+
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() =>
+                          navigate({
+                            to: '/assisting-dashboard/task/$taskId',
+                            params: { taskId: task.id },
+                          })
+                        }
+                        className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col justify-between gap-4 cursor-pointer"
+                      >
+                        {/* Top Row: Title & Fee */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                          <div className="flex flex-col">
+                            <h3 className="text-xl sm:text-[18px] font-medium text-black leading-tight font-primary">
+                              {task.title}
+                            </h3>
+                            <div className="text-xs sm:text-[13px] text-black font-normal mt-1 flex items-center gap-1.5 flex-wrap">
+                              <span>{task.court}</span>
+                              <span>•</span>
+                              <span>{task.deadline}</span>
+                              <span>•</span>
+                              <span>{task.practiceArea}</span>
+                            </div>
+                          </div>
+
+                          {/* Fee Tag */}
+                          <div className="flex flex-col sm:items-end shrink-0">
+                            <span className="text-2xl sm:text-[20px] font-medium text-[#00726D] leading-tight font-primary">
+                              {task.fee}
+                            </span>
+                            <span className="text-[11px] text-gray-400 font-normal mt-0.5">
+                              Quoted Fee
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-xs sm:text-[13.5px] text-black leading-relaxed font-normal">
+                          {task.description}
+                        </p>
+
+                        {/* Footer Row: Tags & View Task Action */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                          {/* Tags */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {task.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="bg-[#f0f2f4] text-gray-600 text-[11px] px-3.5 py-1 rounded-full font-medium select-none"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Button */}
+                          <div className="flex items-center justify-end">
+                            {isApplied ? (
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Proposal Submitted
+                              </span>
+                            ) : (
+                              <Link
+                                to="/assisting-dashboard/task/$taskId"
+                                params={{ taskId: task.id }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-9.5 px-5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 text-gray-800 text-xs font-medium shadow-2xs transition cursor-pointer select-none active:scale-[0.98] inline-flex items-center justify-center no-underline"
+                              >
+                                View Task
+                              </Link>
+                            )}
+                          </div>
                         </div>
                       </div>
-
-                      {/* Fee Tag */}
-                      <div className="flex flex-col sm:items-end shrink-0">
-                        <span className="text-2xl sm:text-[20px] font-medium text-[#00726D] leading-tight font-primary">
-                          {task.fee}
-                        </span>
-                        <span className="text-[11px] text-gray-400 font-normal mt-0.5">
-                          Quoted Fee
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-xs sm:text-[13.5px] text-black leading-relaxed font-normal">
-                      {task.description}
-                    </p>
-
-                    {/* Footer Row: Tags & View Task Action */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                      {/* Tags */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {task.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="bg-[#f0f2f4] text-gray-600 text-[11px] px-3.5 py-1 rounded-full font-medium select-none"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Button */}
-                      <div className="flex items-center justify-end">
-                        {isApplied ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Proposal Submitted
-                          </span>
-                        ) : (
-                          <Link
-                            to="/assisting-dashboard/task/$taskId"
-                            params={{ taskId: task.id }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-9.5 px-5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 text-gray-800 text-xs font-medium shadow-2xs transition cursor-pointer select-none active:scale-[0.98] inline-flex items-center justify-center no-underline"
-                          >
-                            View Task
-                          </Link>
-                        )}
-                      </div>
-                    </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="w-full bg-white border border-gray-150 rounded-2xl p-10 sm:p-14 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center text-center">
+                  {/* Icon Container */}
+                  <div className="w-16 h-16 rounded-2xl bg-[#E6F1F0] flex items-center justify-center mb-5 text-[#00726D] shadow-xs select-none">
+                    {activeFilter === 'Matching My Practice' ? (
+                      <Briefcase className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
+                    ) : (
+                      <SearchX className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
+                    )}
                   </div>
-                )
-              })}
-            </div>
+
+                  {/* Title */}
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 font-primary">
+                    {activeFilter === 'Matching My Practice'
+                      ? 'No available tasks right now'
+                      : `No tasks found for "${activeFilter}"`}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-xs sm:text-sm text-gray-500 max-w-md mt-2 leading-relaxed font-normal">
+                    {activeFilter === 'Matching My Practice'
+                      ? 'There are currently no open briefs or court appearances available. Engaging lawyers post new tasks regularly — check back shortly or make sure your practice alerts are active.'
+                      : 'There are currently no tasks matching the selected filter. Try resetting your filter to view all available briefs.'}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-6 select-none">
+                    {activeFilter !== 'Matching My Practice' && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFilter('Matching My Practice')}
+                        className="h-10 px-5 rounded-xl bg-[#041626] hover:bg-[#08223a] text-white text-xs sm:text-sm font-medium transition cursor-pointer shadow-xs active:scale-[0.98] inline-flex items-center gap-2"
+                      >
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        <span>Reset Filters</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => refetchTasks()}
+                      disabled={isTasksFetching}
+                      className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2"
+                    >
+                      <RotateCw
+                        className={`w-3.5 h-3.5 text-gray-500 ${isTasksFetching ? 'animate-spin' : ''}`}
+                      />
+                      <span>{isTasksFetching ? 'Refreshing...' : 'Refresh Tasks'}</span>
+                    </button>
+
+                    <Link
+                      to="/assisting-dashboard/profile"
+                      className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2 no-underline"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-gray-500" />
+                      <span>Update Practice Areas</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="w-full bg-white border border-gray-150 rounded-2xl p-10 sm:p-14 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center text-center">
-              {/* Icon Container */}
-              <div className="w-16 h-16 rounded-2xl bg-[#E6F1F0] flex items-center justify-center mb-5 text-[#00726D] shadow-xs select-none">
-                {activeFilter === 'Matching My Practice' ? (
-                  <Briefcase className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
-                ) : (
-                  <SearchX className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
-                )}
+            /* ========================================================================= */
+            /* 1B. MY BRIEFS VIEW                                                        */
+            /* ========================================================================= */
+            <div className="flex flex-col gap-6">
+              {/* Title and description */}
+              <div className="flex flex-col gap-1.5">
+                <h2 className="text-2xl sm:text-[28px] font-semibold text-[#041626] tracking-tight font-primary">
+                  My Briefs & Engagements
+                </h2>
+                <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal max-w-3xl">
+                  Matters you have been selected for as Assisting Counsel. Review work status, client feedback, and escrow payments.
+                </p>
               </div>
 
-              {/* Title */}
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 font-primary">
-                {activeFilter === 'Matching My Practice'
-                  ? 'No available tasks right now'
-                  : `No tasks found for "${activeFilter}"`}
-              </h3>
-
-              {/* Description */}
-              <p className="text-xs sm:text-sm text-gray-500 max-w-md mt-2 leading-relaxed font-normal">
-                {activeFilter === 'Matching My Practice'
-                  ? 'There are currently no open briefs or court appearances available. Engaging lawyers post new tasks regularly — check back shortly or make sure your practice alerts are active.'
-                  : 'There are currently no tasks matching the selected filter. Try resetting your filter to view all available briefs.'}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center gap-3 mt-6 select-none">
-                {activeFilter !== 'Matching My Practice' && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter('Matching My Practice')}
-                    className="h-10 px-5 rounded-xl bg-[#041626] hover:bg-[#08223a] text-white text-xs sm:text-sm font-medium transition cursor-pointer shadow-xs active:scale-[0.98] inline-flex items-center gap-2"
-                  >
-                    <SlidersHorizontal className="w-3.5 h-3.5" />
-                    <span>Reset Filters</span>
-                  </button>
-                )}
+              {/* Status Filter Pills */}
+              <div className="w-full bg-white border border-gray-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  {['All', 'In Progress', 'Awaiting review', 'Completed'].map((tab) => {
+                    const isActive = briefsFilter === tab
+                    const count = (myAssistingTasks || []).filter((b) =>
+                      tab === 'All' ? true : b.status?.toLowerCase() === tab.toLowerCase(),
+                    ).length
+                    return (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setBriefsFilter(tab)}
+                        className={`h-9 px-4 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none flex items-center gap-1.5 ${isActive
+                            ? 'bg-[#041626] text-white shadow-xs'
+                            : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                          }`}
+                      >
+                        <span>{tab}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => refetchTasks()}
-                  disabled={isTasksFetching}
-                  className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2"
+                  onClick={() => refetchAssistingTasks()}
+                  disabled={isMyAssistingTasksFetching}
+                  className="h-9 px-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition cursor-pointer shadow-2xs flex items-center gap-1.5 select-none"
                 >
                   <RotateCw
-                    className={`w-3.5 h-3.5 text-gray-500 ${isTasksFetching ? 'animate-spin' : ''}`}
+                    className={`w-3.5 h-3.5 text-gray-500 ${isMyAssistingTasksFetching ? 'animate-spin' : ''
+                      }`}
                   />
-                  <span>{isTasksFetching ? 'Refreshing...' : 'Refresh Tasks'}</span>
+                  <span>Refresh</span>
                 </button>
-
-                <Link
-                  to="/assisting-dashboard/profile"
-                  className="h-10 px-5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-xs sm:text-sm font-medium transition cursor-pointer shadow-2xs active:scale-[0.98] inline-flex items-center gap-2 no-underline"
-                >
-                  <Bell className="w-3.5 h-3.5 text-gray-500" />
-                  <span>Update Practice Areas</span>
-                </Link>
               </div>
+
+              {/* Briefs Cards List */}
+              {isMyAssistingTasksLoading ? (
+                <div className="w-full bg-white border border-gray-150 rounded-2xl p-12 sm:p-16 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center justify-center gap-3 text-center">
+                  <Loader2 className="w-8 h-8 text-[#00726D] animate-spin" />
+                  <p className="text-sm font-medium text-gray-800">Loading your briefs...</p>
+                  <span className="text-xs text-gray-400">Fetching assigned and completed briefs</span>
+                </div>
+              ) : (
+                (() => {
+                  const filteredBriefs = (myAssistingTasks || []).filter((b) => {
+                    if (briefsFilter === 'All') return true
+                    return b.status?.toLowerCase() === briefsFilter.toLowerCase()
+                  })
+
+                  if (filteredBriefs.length === 0) {
+                    return (
+                      <div className="w-full bg-white border border-gray-150 rounded-2xl p-10 sm:p-14 shadow-[0_2px_15px_rgba(0,0,0,0.015)] flex flex-col items-center text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-[#E6F1F0] flex items-center justify-center mb-4 text-[#00726D] shadow-xs select-none">
+                          <Briefcase className="w-8 h-8 text-[#00726D] stroke-[1.75]" />
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 font-primary">
+                          {briefsFilter === 'All' ? 'No Assigned Briefs Yet' : `No ${briefsFilter} Briefs`}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500 max-w-md mt-2 leading-relaxed font-normal">
+                          {briefsFilter === 'All'
+                            ? 'When an Engaging Lawyer selects your proposal on an open matter, the brief and instructions will appear here with real-time status and payment tracking.'
+                            : `You currently do not have any briefs matching "${briefsFilter}".`}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveMainTab('browse')
+                            setBriefsFilter('All')
+                          }}
+                          className="mt-5 h-10 px-6 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs select-none"
+                        >
+                          Browse Available Tasks
+                        </button>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="flex flex-col gap-5">
+                      {filteredBriefs.map((brief) => (
+                        <div
+                          key={brief.id}
+                          className="bg-white border border-gray-200/90 rounded-2xl p-6 sm:p-7 shadow-[0_2px_15px_rgba(0,0,0,0.015)] hover:border-gray-300 transition-all flex flex-col gap-4"
+                        >
+                          {/* Top Row: Title, Status Badge & Agreed Fee */}
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2.5 flex-wrap">
+                                <h3 className="text-lg sm:text-xl font-medium text-black leading-tight font-primary">
+                                  {brief.title}
+                                </h3>
+                                {brief.status?.toLowerCase() === 'completed' ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 select-none">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Completed
+                                  </span>
+                                ) : brief.status === 'Awaiting review' ? (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 select-none">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    Awaiting Review
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 select-none">
+                                    <Briefcase className="w-3.5 h-3.5" />
+                                    In Progress
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="text-xs sm:text-[13px] text-gray-500 font-normal mt-1 flex items-center gap-2 flex-wrap">
+                                <span>
+                                  Engaged by: <strong className="text-gray-800 font-semibold">{brief.postedBy}</strong>
+                                </span>
+                                <span>•</span>
+                                <span>{brief.court || brief.courtLocation}</span>
+                                <span>•</span>
+                                <span>{brief.practiceArea || brief.category}</span>
+                                <span>•</span>
+                                <span>Deadline: {brief.deadline}</span>
+                              </div>
+                            </div>
+
+                            {/* Fee */}
+                            <div className="flex flex-col sm:items-end shrink-0">
+                              <span className="text-xl sm:text-2xl font-medium text-[#00726D] font-primary">
+                                {brief.budget}
+                              </span>
+                              <span className="text-[11px] text-gray-400 font-normal mt-0.5">
+                                Agreed Fee
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Completed Details: Rating and Review */}
+                          {brief.status?.toLowerCase() === 'completed' && (
+                            <div className="bg-[#F8FAF9] border border-emerald-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center text-amber-500">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star
+                                        key={star}
+                                        className={`w-3.5 h-3.5 ${star <= Math.round(brief.rating || 5)
+                                            ? 'fill-amber-400 text-amber-400'
+                                            : 'text-gray-200'
+                                          }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs font-bold text-gray-800">
+                                    {(brief.rating || 5.0).toFixed(1)} / 5.0 Rating Received
+                                  </span>
+                                </div>
+                                {brief.feedback ? (
+                                  <p className="text-xs text-gray-700 italic mt-0.5">
+                                    "{brief.feedback}"
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    Engaging counsel confirmed completion with 5-star rating.
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100/70 text-emerald-800 text-xs font-semibold shrink-0 select-none">
+                                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                Escrow Released
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Card Actions Footer */}
+                          <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                            <div className="text-xs text-gray-400 font-normal">
+                              Brief ID: #{brief.id}
+                            </div>
+
+                            <div className="flex items-center gap-2.5">
+                              <Link
+                                to="/assisting-dashboard/messages"
+                                search={{ taskId: brief.id }}
+                                className="h-9 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium transition cursor-pointer inline-flex items-center gap-1.5 no-underline shadow-2xs select-none"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5 text-gray-500" />
+                                <span>Open Chat</span>
+                              </Link>
+
+                              <Link
+                                to="/assisting-dashboard/task/$taskId"
+                                params={{ taskId: String(brief.id) }}
+                                className="h-9 px-4 rounded-xl bg-[#00726D] hover:bg-[#005c58] text-white text-xs font-medium transition cursor-pointer inline-flex items-center gap-1.5 no-underline shadow-xs select-none"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>View Details</span>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()
+              )}
             </div>
           )}
         </section>

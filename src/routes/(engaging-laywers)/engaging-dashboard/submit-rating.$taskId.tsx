@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import CheckIcon from '#/assets/icons/check-icon.png'
 import { useTaskById, useApproveTaskCompletion } from '#/hooks/useTasks'
@@ -26,43 +27,29 @@ function SubmitRatingPage() {
   const lawyerName =
     selectedProposal?.name ||
     serverTask?.workers ||
-    'Chiamaka Bello'
+    'Selected Counsel'
+
+  const queryClient = useQueryClient()
 
   const handleRatingSubmit = () => {
-    approveTask(undefined, {
-      onSuccess: () => {
-        let tasksList: any[] = []
-        const stored = localStorage.getItem('counsel_tasks')
-        if (stored) {
-          try {
-            tasksList = JSON.parse(stored)
-          } catch (e) {
-            // ignore
-          }
-        }
-        const existingIdx = tasksList.findIndex((t: any) => String(t.id) === String(taskId))
-        const taskData = {
-          id: String(taskId),
-          title: serverTask?.title || `Task #${taskId}`,
-          workers: lawyerName,
-          budget: serverTask?.budget || '₦0',
-          status: 'Completed',
-          rating,
-          feedback,
-          category: serverTask?.category || serverTask?.practiceArea || 'General',
-          court: serverTask?.court || serverTask?.courtLocation || 'High Court',
-          deadline: serverTask?.deadline || 'Completed',
-          ratedAt: new Date().toISOString(),
-        }
-        if (existingIdx >= 0) {
-          tasksList[existingIdx] = { ...tasksList[existingIdx], ...taskData }
-        } else {
-          tasksList.push(taskData)
-        }
-        localStorage.setItem('counsel_tasks', JSON.stringify(tasksList))
-        setIsSubmitted(true)
+    approveTask(
+      {
+        rating,
+        feedback: feedback.trim(),
       },
-    })
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+          queryClient.invalidateQueries({ queryKey: ['tasks'] })
+          queryClient.invalidateQueries({ queryKey: ['assisting-my-tasks'] })
+          queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+          try {
+            localStorage.removeItem('counsel_tasks')
+          } catch (_) { }
+          setIsSubmitted(true)
+        },
+      },
+    )
   }
 
   if (isTaskLoading) {
@@ -226,9 +213,8 @@ function SubmitRatingPage() {
                   <button
                     key={star}
                     onClick={() => setRating(star)}
-                    className={`cursor-pointer transition transform active:scale-95 text-[#00726d] ${
-                      star <= rating ? 'opacity-100' : 'opacity-25'
-                    }`}
+                    className={`cursor-pointer transition transform active:scale-95 text-[#00726d] ${star <= rating ? 'opacity-100' : 'opacity-25'
+                      }`}
                   >
                     ★
                   </button>

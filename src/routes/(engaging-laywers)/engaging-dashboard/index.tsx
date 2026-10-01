@@ -16,37 +16,29 @@ function DashboardIndex() {
   const { data: serverTasks, isLoading } = useMyTasks()
   const { data: profile } = useEngagingProfile()
   const [searchQuery, setSearchQuery] = useState('')
-  const [localTasks, setLocalTasks] = useState<any[]>([])
-
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('counsel_tasks')
-      if (stored) {
-        setLocalTasks(JSON.parse(stored))
-      }
+      // Clear legacy unscoped global tasks key to prevent cross-account task leakage
+      localStorage.removeItem('counsel_tasks')
     } catch (_) { }
   }, [])
 
-  // Merge serverTasks and localTasks (server is source of truth)
-  const mergedMap = new Map<string, TaskItem>()
-    ; (serverTasks || []).forEach((st) => {
-      const localMatch = localTasks.find((lt) => String(lt.id) === String(st.id))
-      mergedMap.set(String(st.id), {
-        ...(localMatch || {}),
-        ...st,
-      })
+  // Only show tasks posted by this engaging lawyer
+  const tasks = (serverTasks || [])
+    .filter((t) => {
+      if (profile?.email && t.postedByEmail) {
+        return t.postedByEmail.toLowerCase() === profile.email.toLowerCase()
+      }
+      if (profile?.id && t.createdById) {
+        return t.createdById === profile.id
+      }
+      return true
     })
-  localTasks.forEach((lt) => {
-    if (!mergedMap.has(String(lt.id))) {
-      mergedMap.set(String(lt.id), lt)
-    }
-  })
-
-  const tasks = Array.from(mergedMap.values()).sort((a, b) => {
-    const timeA = new Date(a.updatedAt || a.paidAt || a.createdAt || 0).getTime()
-    const timeB = new Date(b.updatedAt || b.paidAt || b.createdAt || 0).getTime()
-    return timeB - timeA
-  })
+    .sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.paidAt || a.createdAt || 0).getTime()
+      const timeB = new Date(b.updatedAt || b.paidAt || b.createdAt || 0).getTime()
+      return timeB - timeA
+    })
   const greetingName = profile?.fullName ? profile.fullName.split(' ')[0] : 'Counsel'
 
   // Filter tasks based on query
@@ -63,6 +55,8 @@ function DashboardIndex() {
       case 'Awaiting review':
         return 'bg-red-50 text-red-600 border-red-100'
       case 'Completed':
+        return 'bg-gray-100 text-gray-500 border-gray-200'
+      case 'Cancelled':
         return 'bg-gray-100 text-gray-500 border-gray-200'
       default:
         return 'bg-gray-50 text-gray-600'

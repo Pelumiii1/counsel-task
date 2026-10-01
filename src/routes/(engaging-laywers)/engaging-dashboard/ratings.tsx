@@ -14,32 +14,14 @@ interface RatedTask extends TaskItem {
 
 function RatingsPage() {
   const { data: serverTasks, isLoading } = useMyTasks()
-  const [localTasks, setLocalTasks] = useState<any[]>([])
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('counsel_tasks')
-      if (stored) {
-        setLocalTasks(JSON.parse(stored))
-      }
+      localStorage.removeItem('counsel_tasks')
     } catch (_) {}
   }, [])
 
-  // Merge server tasks with local storage tasks
-  const mergedMap = new Map<string, any>()
-  ;(serverTasks || []).forEach((st) => {
-    mergedMap.set(String(st.id), { ...st })
-  })
-  localTasks.forEach((lt) => {
-    const existing = mergedMap.get(String(lt.id))
-    if (existing) {
-      mergedMap.set(String(lt.id), { ...existing, ...lt })
-    } else {
-      mergedMap.set(String(lt.id), lt)
-    }
-  })
-
-  const allTasks = Array.from(mergedMap.values())
+  const allTasks = serverTasks || []
 
   // Only include tasks where a real rating was actually submitted
   const ratedTasks = allTasks

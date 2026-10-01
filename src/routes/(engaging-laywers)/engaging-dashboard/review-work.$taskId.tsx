@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { ArrowLeft, FileText, Download, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react'
+import { ArrowLeft, FileText, Download, AlertCircle, Loader2, X } from 'lucide-react'
 import PDF from '../../../assets/icons/pdf.png'
 import JPG from '../../../assets/icons/jpg.png'
 import { useTaskById, useRequestTaskChanges } from '#/hooks/useTasks'
@@ -38,8 +38,7 @@ function ReviewWorkPage() {
   const lawyerName =
     selectedProposal?.name ||
     serverTask?.workers ||
-    'Chiamaka Bello'
-  const lawyerFirstName = lawyerName.split(' ')[0]
+    'Selected Counsel'
 
   // Find completion note message from assisting lawyer if present
   const completionMessage = (threadMessages || [])
@@ -193,8 +192,8 @@ function ReviewWorkPage() {
           type="button"
           onClick={() => setActiveTab('attendance')}
           className={`h-9 px-4 rounded-full text-xs font-semibold transition cursor-pointer ${activeTab === 'attendance'
-              ? 'bg-[#031625] text-[#E8EBEC] shadow-sm'
-              : 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+            ? 'bg-[#031625] text-[#E8EBEC] shadow-sm'
+            : 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
             }`}
         >
           Court Attendance
@@ -203,8 +202,8 @@ function ReviewWorkPage() {
           type="button"
           onClick={() => setActiveTab('documents')}
           className={`h-9 px-4 rounded-full text-xs font-normal transition cursor-pointer font-secondary ${activeTab === 'documents'
-              ? 'bg-[#041626] text-white shadow-sm border border-[#AAAAAA80]'
-              : 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+            ? 'bg-[#041626] text-white shadow-sm border border-[#AAAAAA80]'
+            : 'border border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
             }`}
         >
           Submitted Documents

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold,
@@ -38,7 +37,10 @@ export function RichTextEditor({
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [linkText, setLinkText] = useState('')
-  const [savedRange, setSavedRange] = useState<{ from: number; to: number } | null>(null)
+  const [savedRange, setSavedRange] = useState<{
+    from: number
+    to: number
+  } | null>(null)
   const linkInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
@@ -53,15 +55,16 @@ export function RichTextEditor({
           keepMarks: true,
           keepAttributes: false,
         },
-      }),
-      Link.configure({
-        openOnClick: true,
-        autolink: true,
-        defaultProtocol: 'https',
-        HTMLAttributes: {
-          class: 'text-[#00726D] underline hover:text-[#005c58] cursor-pointer',
-          target: '_blank',
-          rel: 'noopener noreferrer',
+        link: {
+          openOnClick: true,
+          autolink: true,
+          defaultProtocol: 'https',
+          HTMLAttributes: {
+            class:
+              'text-[#00726D] underline hover:text-[#005c58] cursor-pointer',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          },
         },
       }),
       Placeholder.configure({
@@ -161,9 +164,12 @@ export function RichTextEditor({
       return
     }
 
-    const normalizedUrl = /^https?:\/\//i.test(trimmedUrl) || /^mailto:/i.test(trimmedUrl) || /^tel:/i.test(trimmedUrl)
-      ? trimmedUrl
-      : `https://${trimmedUrl}`
+    const normalizedUrl =
+      /^https?:\/\//i.test(trimmedUrl) ||
+      /^mailto:/i.test(trimmedUrl) ||
+      /^tel:/i.test(trimmedUrl)
+        ? trimmedUrl
+        : `https://${trimmedUrl}`
 
     if (savedRange && savedRange.from !== savedRange.to) {
       // Apply to existing selected range
@@ -270,7 +276,9 @@ export function RichTextEditor({
               ? 'bg-[#00726D]/15 text-[#00726D]'
               : 'hover:bg-gray-200 text-gray-700'
           }`}
-          title={editor.isActive('link') ? 'Edit or remove link' : 'Insert Link'}
+          title={
+            editor.isActive('link') ? 'Edit or remove link' : 'Insert Link'
+          }
         >
           <Link2 className="w-4 h-4" />
         </button>
@@ -328,7 +336,9 @@ export function RichTextEditor({
 
           {savedRange && savedRange.from === savedRange.to && (
             <div className="flex items-center gap-1.5 min-w-[140px]">
-              <span className="text-gray-500 font-medium select-none">Text:</span>
+              <span className="text-gray-500 font-medium select-none">
+                Text:
+              </span>
               <input
                 type="text"
                 value={linkText}
