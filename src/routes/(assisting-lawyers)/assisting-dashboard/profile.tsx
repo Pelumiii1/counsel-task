@@ -6,11 +6,14 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
+  Plus,
+  X,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import { useBanks, useResolveAccount } from '#/hooks/useBanks'
 import { useAssistingProfile, useUpdateAssistingProfile } from '#/hooks/useProfile'
 import { BankSelectCombobox } from '#/components/BankSelectCombobox'
+import { DEFAULT_PRACTICE_AREAS } from '#/lib/constants'
 
 function formatToDateInput(dateStr?: string) {
   if (!dateStr) return ''
@@ -59,6 +62,9 @@ function AssistingProfilePage() {
 
   // Professional Profile - clean empty defaults (no dummy/auto-selected data)
   const [practiceAreas, setPracticeAreas] = useState<string[]>([])
+  const [customPracticeAreas, setCustomPracticeAreas] = useState<string[]>([])
+  const [customAreaInput, setCustomAreaInput] = useState('')
+  const [isAddingCustom, setIsAddingCustom] = useState(false)
   const [courtsCovered, setCourtsCovered] = useState<string[]>([])
   const [weeklyAvailability, setWeeklyAvailability] = useState<string[]>([])
   const [yearsOfPractice, setYearsOfPractice] = useState('')
@@ -114,6 +120,12 @@ function AssistingProfilePage() {
       }
       if (profile.practiceAreas && Array.isArray(profile.practiceAreas) && profile.practiceAreas.length > 0) {
         setPracticeAreas(profile.practiceAreas)
+        const custom = profile.practiceAreas.filter(
+          (a) => !DEFAULT_PRACTICE_AREAS.includes(a),
+        )
+        if (custom.length > 0) {
+          setCustomPracticeAreas((prev) => Array.from(new Set([...prev, ...custom])))
+        }
       }
     }
   }, [profile])
@@ -212,14 +224,35 @@ function AssistingProfilePage() {
     )
   }
 
-  const practiceAreaOptions = [
-    'Property Law',
-    'Commercial Litigation',
-    'Criminal Law',
-    'Family Law',
-    'Tenancy & Real Estate',
-    'Corporate & Contracts',
-  ]
+  const allPracticeAreaOptions = Array.from(
+    new Set([...DEFAULT_PRACTICE_AREAS, ...customPracticeAreas]),
+  )
+
+  const handleAddCustomArea = () => {
+    const trimmed = customAreaInput.trim()
+    if (!trimmed) return
+    const matchingDefault = DEFAULT_PRACTICE_AREAS.find(
+      (a) => a.toLowerCase() === trimmed.toLowerCase(),
+    )
+    const targetName = matchingDefault || trimmed
+
+    if (
+      !DEFAULT_PRACTICE_AREAS.includes(targetName) &&
+      !customPracticeAreas.includes(targetName)
+    ) {
+      setCustomPracticeAreas((prev) => [...prev, targetName])
+    }
+    if (!practiceAreas.includes(targetName)) {
+      setPracticeAreas((prev) => [...prev, targetName])
+    }
+    setCustomAreaInput('')
+    setIsAddingCustom(false)
+  }
+
+  const handleRemoveCustomArea = (area: string) => {
+    setCustomPracticeAreas((prev) => prev.filter((a) => a !== area))
+    setPracticeAreas((prev) => prev.filter((a) => a !== area))
+  }
 
   const courtOptions = [
     'Ikeja High Court',
@@ -377,23 +410,89 @@ function AssistingProfilePage() {
               <label className="text-xs sm:text-sm font-semibold text-gray-900">
                 Practice Areas (select all that apply)
               </label>
-              <div className="flex flex-wrap gap-2.5">
-                {practiceAreaOptions.map((area) => {
+              <div className="flex flex-wrap gap-2.5 items-center">
+                {allPracticeAreaOptions.map((area) => {
                   const isSelected = practiceAreas.includes(area)
+                  const isCustom = !DEFAULT_PRACTICE_AREAS.includes(area)
                   return (
-                    <button
+                    <div
                       key={area}
-                      type="button"
                       onClick={() => togglePracticeArea(area)}
-                      className={`h-9.5 px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center justify-center select-none ${isSelected
-                        ? 'bg-[#041626] text-white shadow-xs'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
-                        }`}
+                      className={`h-9.5 px-3.5 sm:px-4.5 rounded-full text-xs font-medium transition cursor-pointer flex items-center gap-1.5 select-none ${
+                        isSelected
+                          ? 'bg-[#041626] text-white shadow-xs'
+                          : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/60'
+                      }`}
                     >
-                      {area}
-                    </button>
+                      <span>{area}</span>
+                      {isCustom && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveCustomArea(area)
+                          }}
+                          className={`p-0.5 rounded-full transition hover:bg-black/10 ${
+                            isSelected
+                              ? 'text-white/80 hover:text-white'
+                              : 'text-gray-400 hover:text-gray-700'
+                          }`}
+                          title="Remove custom practice area"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   )
                 })}
+
+                {!isAddingCustom ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCustom(true)}
+                    className="h-9.5 px-3.5 rounded-full text-xs font-medium border border-dashed border-[#00726D]/50 text-[#00726D] bg-[#00726D]/5 hover:bg-[#00726D]/10 hover:border-[#00726D] transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Custom Area</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1.5 bg-white border border-[#00726D] rounded-full p-1 pl-3 shadow-xs">
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="e.g. Intellectual Property"
+                      value={customAreaInput}
+                      onChange={(e) => setCustomAreaInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddCustomArea()
+                        } else if (e.key === 'Escape') {
+                          setIsAddingCustom(false)
+                          setCustomAreaInput('')
+                        }
+                      }}
+                      className="text-xs bg-transparent outline-none w-36 sm:w-48 text-gray-800 placeholder:text-gray-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomArea}
+                      className="h-7 px-2.5 rounded-full bg-[#00726D] text-white text-xs font-medium hover:bg-[#005c58] transition cursor-pointer"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingCustom(false)
+                        setCustomAreaInput('')
+                      }}
+                      className="p-1 text-gray-400 hover:text-gray-600 rounded-full cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

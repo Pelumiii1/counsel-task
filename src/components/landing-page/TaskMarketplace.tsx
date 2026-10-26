@@ -15,7 +15,7 @@ export function TaskMarketplace() {
   const tasks = [
     {
       title: 'Hold Brief — Land Dispute',
-      category: 'Property Law',
+      category: 'Real Estate',
       court: 'Ikeja High Court',
       deadline: 'Tomorrow, 9:00am',
       budget: '₦35,000',
@@ -24,7 +24,7 @@ export function TaskMarketplace() {
     },
     {
       title: 'Draft Statement of Defence',
-      category: 'Commercial Litigation',
+      category: 'Litigation',
       court: 'Remote',
       deadline: '3 days',
       budget: '₦120,000',
@@ -32,11 +32,11 @@ export function TaskMarketplace() {
       statusColor: 'bg-[#E6F8F3] text-[#008A5E]',
     },
     {
-      title: 'Court Appearance — Bail Application',
-      category: 'Criminal Law',
-      court: 'Yaba Magistrate Court',
+      title: 'Commercial Arbitration Hearing Representation',
+      category: 'Arbitration',
+      court: 'Lagos Court of Arbitration',
       deadline: 'Friday, 8:30am',
-      budget: '₦45,000',
+      budget: '₦85,000',
       status: 'Proposal Recieved',
       statusColor: 'bg-[#FFF0EB] text-[#CF6A52]',
     },

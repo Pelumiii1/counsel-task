@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Upload,
   Info,
+  Plus,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
 import {
@@ -12,6 +13,7 @@ import {
 } from '#/components/engaging-lawyers/constants'
 import { useCreateTask } from '#/hooks/useTasks'
 import { useEngagingProfile } from '#/hooks/useProfile'
+import { DEFAULT_PRACTICE_AREAS } from '#/lib/constants'
 
 export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/post-job')({
   component: PostJobPage,
@@ -24,7 +26,9 @@ function PostJobPage() {
   const createTaskMutation = useCreateTask()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [practiceArea, setPracticeArea] = useState('Property Law')
+  const [practiceArea, setPracticeArea] = useState('Litigation')
+  const [customPracticeArea, setCustomPracticeArea] = useState('')
+  const [isCustomArea, setIsCustomArea] = useState(false)
   const [courtLocation, setCourtLocation] = useState('')
   const [deadline, setDeadline] = useState('')
   const [proposedFee, setProposedFee] = useState('')
@@ -44,15 +48,23 @@ function PostJobPage() {
     e.preventDefault()
     setError('')
 
+    const finalPracticeArea = isCustomArea
+      ? customPracticeArea.trim()
+      : practiceArea.trim()
+
     if (
       !title ||
       !description ||
-      !practiceArea ||
+      !finalPracticeArea ||
       !courtLocation ||
       !deadline ||
       !proposedFee
     ) {
-      setError('Please complete all required fields.')
+      if (isCustomArea && !customPracticeArea.trim()) {
+        setError('Please specify your custom practice area.')
+      } else {
+        setError('Please complete all required fields.')
+      }
       return
     }
 
@@ -62,8 +74,12 @@ function PostJobPage() {
     }
 
     const feeAmount = parseFloat(proposedFee.replace(/[^0-9]/g, ''))
-    if (practiceArea === 'Property Law' && feeAmount < 30000) {
-      setError('Proposed fee is below the minimum limit for Property Law.')
+    if (
+      (finalPracticeArea === 'Real Estate' ||
+        finalPracticeArea === 'Property Law') &&
+      feeAmount < 30000
+    ) {
+      setError('Proposed fee is below the minimum limit for Real Estate.')
       return
     }
 
@@ -71,7 +87,7 @@ function PostJobPage() {
       {
         title,
         description,
-        practiceArea,
+        practiceArea: finalPracticeArea,
         courtLocation,
         deadline,
         proposedFee,
@@ -142,16 +158,83 @@ function PostJobPage() {
 
           {/* Row 1: Practice Area + Court Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <label className={labelClass}>
-              <span>Practice Area {requiredMark}</span>
-              <input
-                type="text"
-                value={practiceArea}
-                onChange={(e) => setPracticeArea(e.target.value)}
-                placeholder="Property Law"
-                className={inputClass}
-              />
-            </label>
+            <div className="flex flex-col gap-2">
+              <label className={labelClass}>
+                <span>Practice Area {requiredMark}</span>
+                <select
+                  value={isCustomArea ? '__CUSTOM__' : practiceArea}
+                  onChange={(e) => {
+                    if (e.target.value === '__CUSTOM__') {
+                      setIsCustomArea(true)
+                    } else {
+                      setIsCustomArea(false)
+                      setPracticeArea(e.target.value)
+                    }
+                  }}
+                  className={inputClass}
+                >
+                  {DEFAULT_PRACTICE_AREAS.map((area) => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
+                  ))}
+                  <option value="__CUSTOM__">Other (Custom Practice Area)...</option>
+                </select>
+              </label>
+
+              {/* Quick Select Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] text-gray-400 mr-0.5">Quick pick:</span>
+                {DEFAULT_PRACTICE_AREAS.map((area) => {
+                  const isSelected = !isCustomArea && practiceArea === area
+                  return (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() => {
+                        setIsCustomArea(false)
+                        setPracticeArea(area)
+                      }}
+                      className={`h-6 px-2 rounded text-[11px] font-medium transition cursor-pointer select-none ${
+                        isSelected
+                          ? 'bg-[#00726D] text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {area}
+                    </button>
+                  )
+                })}
+                <button
+                  type="button"
+                  onClick={() => setIsCustomArea(true)}
+                  className={`h-6 px-2 rounded text-[11px] font-medium transition cursor-pointer select-none flex items-center gap-0.5 ${
+                    isCustomArea
+                      ? 'bg-[#00726D] text-white'
+                      : 'bg-gray-100 text-[#00726D] hover:bg-gray-200 border border-dashed border-[#00726D]/30'
+                  }`}
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Custom</span>
+                </button>
+              </div>
+
+              {isCustomArea && (
+                <div className="flex flex-col gap-1 mt-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={customPracticeArea}
+                    onChange={(e) => setCustomPracticeArea(e.target.value)}
+                    placeholder="Enter custom practice area (e.g. Maritime Law, Tax)"
+                    className={inputClass}
+                  />
+                  <p className="text-[11px] text-gray-500">
+                    Specify the practice area for this task.
+                  </p>
+                </div>
+              )}
+            </div>
 
             <label className={labelClass}>
               <span>Court Location {requiredMark}</span>
@@ -194,7 +277,7 @@ function PostJobPage() {
               <div className="flex gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3.5 py-2.5 text-xs text-orange-800 items-start select-none leading-relaxed">
                 <Info className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
                 <p>
-                  The minimum fee for Property Law tasks is ₦30,000. Proposed
+                  The minimum fee for Real Estate tasks is ₦30,000. Proposed
                   fees below this amount cannot be submitted.
                 </p>
               </div>

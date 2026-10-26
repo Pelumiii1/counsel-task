@@ -162,10 +162,12 @@ function AdminReportsPage() {
   const disputedTasks = reportData?.disputedTasks ?? 0
   const taskCreationTrend = reportData?.taskCreationTrend || []
   const taskCategoryDistribution = reportData?.taskCategoryDistribution || [
-    { name: 'Property Law', value: 40, color: '#004B45' },
-    { name: 'Corporate Law', value: 30, color: '#00726D' },
-    { name: 'Litigation', value: 20, color: '#93CAC3' },
-    { name: 'General Practice', value: 10, color: '#E0EFEA' },
+    { name: 'Litigation', value: 35, color: '#004B45' },
+    { name: 'Corporate and Commercial', value: 25, color: '#00726D' },
+    { name: 'Real Estate', value: 20, color: '#93CAC3' },
+    { name: 'Arbitration', value: 10, color: '#E0EFEA' },
+    { name: 'Energy', value: 5, color: '#F3A63B' },
+    { name: 'Finance', value: 5, color: '#6C5CE7' },
   ]
   const monthlyTasksTable = reportData?.monthlyTasksTable || []
 

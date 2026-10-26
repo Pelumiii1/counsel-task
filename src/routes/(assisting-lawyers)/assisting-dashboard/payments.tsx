@@ -41,7 +41,7 @@ function AssistingPaymentsPage() {
       return {
         id: String(p.id),
         taskTitle: p.taskTitle || 'Legal Representation Brief',
-        practiceArea: p.practiceArea || 'Property Law',
+        practiceArea: p.practiceArea || 'Litigation',
         client: p.clientName || 'Engaging Counsel',
         amount: p.fee || `₦${raw.toLocaleString()}`,
         date: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently',

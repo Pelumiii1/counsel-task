@@ -47,7 +47,7 @@ function MyProposalsPage() {
         id: String(p.id),
         taskId: String(p.taskId),
         taskTitle: p.taskTitle || 'Legal Brief',
-        practiceArea: p.practiceArea || 'Property Law',
+        practiceArea: p.practiceArea || 'Litigation',
         client: p.clientName || 'Engaging Counsel',
         feeQuoted: formatCurrency(p.fee),
         dateSent: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent',

@@ -58,7 +58,7 @@ function SubmitProposalPage() {
   const practiceAreaLabel =
     profile?.practiceAreas && profile.practiceAreas.length > 0
       ? profile.practiceAreas.slice(0, 2).join(', ')
-      : serverTask?.practiceArea || serverTask?.category || 'Property Law'
+      : serverTask?.practiceArea || serverTask?.category || 'Real Estate'
   const locationLabel =
     profile?.officeAddress?.trim() ||
     (serverTask?.court ? `${serverTask.court.replace(' High Court', '').replace(' Magistrate Court', '')}, Lagos` : 'Ikeja, Lagos')
@@ -71,7 +71,7 @@ function SubmitProposalPage() {
     title: serverTask?.title || 'Hold Brief - Land Dispute',
     postedBy: serverTask?.postedBy || 'Onasanya Habeeb',
     posterFirstName: serverTask?.postedBy ? serverTask.postedBy.split(' ')[0] : 'Onasanya',
-    practiceArea: serverTask?.practiceArea || serverTask?.category || 'Property Law',
+    practiceArea: serverTask?.practiceArea || serverTask?.category || 'Real Estate',
     court: serverTask?.court || serverTask?.courtLocation || 'Ikeja High Court',
     deadline: serverTask?.deadline || 'Tomorrow, 9:00am',
     proposedFee: formattedFee,
