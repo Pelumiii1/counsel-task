@@ -5,23 +5,35 @@ export function Footer() {
     {
       title: 'Platform',
       links: [
-        'How It Works',
-        'For Engaging Lawyers',
-        'For Assisting Lawyers',
-        'Pricing',
+        { label: 'How It Works', href: '/#how-it-works' },
+        { label: 'For Engaging Lawyers', href: '/#for-lawyers' },
+        { label: 'For Assisting Lawyers', href: '/#for-lawyers' },
+        { label: 'Pricing', href: '/#pricing' },
       ],
     },
     {
       title: 'Support',
-      links: ['Help Centre', 'Submit a Ticket', 'Dispute Guidance'],
+      links: [
+        { label: 'Help Centre', href: '/#help' },
+        { label: 'Submit a Ticket', href: 'mailto:help@counseltask.com' },
+        { label: 'Dispute Guidance', href: '/complaints-policy' },
+      ],
     },
     {
       title: 'Policies',
-      links: ['Terms of Use', 'Privacy Policy', 'Complaints Policy'],
+      links: [
+        { label: 'Terms of Use', href: '/terms-of-use' },
+        { label: 'Privacy Policy', href: '/privacy-policy' },
+        { label: 'Complaints Policy', href: '/complaints-policy' },
+      ],
     },
     {
       title: 'Social',
-      links: ['Twitter', 'LinkedIn', 'Facebook'],
+      links: [
+        { label: 'Twitter', href: 'https://twitter.com' },
+        { label: 'LinkedIn', href: 'https://linkedin.com' },
+        { label: 'Facebook', href: 'https://facebook.com' },
+      ],
     },
   ]
 
@@ -52,13 +64,13 @@ export function Footer() {
                   {column.title}
                 </h4>
                 <ul className="space-y-3 font-secondary text-xs sm:text-sm font-light text-[#E9D7FE]">
-                  {column.links.map((link, linkIdx) => (
+                  {column.links.map((linkItem, linkIdx) => (
                     <li key={linkIdx}>
                       <a
-                        href="#"
+                        href={linkItem.href}
                         className="hover:text-[#CF6A52] transition-colors duration-200"
                       >
-                        {link}
+                        {linkItem.label}
                       </a>
                     </li>
                   ))}

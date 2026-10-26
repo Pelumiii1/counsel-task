@@ -13,6 +13,9 @@ import { Route as adminAdminDashboardRouteImport } from './routes/(admin)/admin-
 import { Route as assistingLawyersAssistingDashboardRouteImport } from './routes/(assisting-lawyers)/assisting-dashboard'
 import { Route as engagingLaywersEngagingDashboardRouteImport } from './routes/(engaging-laywers)/engaging-dashboard'
 import { Route as landingpageIndexRouteImport } from './routes/(landingpage)/index'
+import { Route as landingpageComplaintsPolicyRouteImport } from './routes/(landingpage)/complaints-policy'
+import { Route as landingpagePrivacyPolicyRouteImport } from './routes/(landingpage)/privacy-policy'
+import { Route as landingpageTermsOfUseRouteImport } from './routes/(landingpage)/terms-of-use'
 import { Route as adminAdminDashboardIndexRouteImport } from './routes/(admin)/admin-dashboard/index'
 import { Route as adminAdminDashboardAnnouncementsRouteImport } from './routes/(admin)/admin-dashboard/announcements'
 import { Route as adminAdminDashboardFinanceRouteImport } from './routes/(admin)/admin-dashboard/finance'
@@ -70,6 +73,23 @@ const engagingLaywersEngagingDashboardRoute =
 const landingpageIndexRoute = landingpageIndexRouteImport.update({
   id: '/(landingpage)/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const landingpageComplaintsPolicyRoute =
+  landingpageComplaintsPolicyRouteImport.update({
+    id: '/(landingpage)/complaints-policy',
+    path: '/complaints-policy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const landingpagePrivacyPolicyRoute =
+  landingpagePrivacyPolicyRouteImport.update({
+    id: '/(landingpage)/privacy-policy',
+    path: '/privacy-policy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const landingpageTermsOfUseRoute = landingpageTermsOfUseRouteImport.update({
+  id: '/(landingpage)/terms-of-use',
+  path: '/terms-of-use',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminAdminDashboardIndexRoute =
@@ -293,6 +313,9 @@ export interface FileRoutesByFullPath {
   '/admin-dashboard': typeof adminAdminDashboardRouteWithChildren
   '/assisting-dashboard': typeof assistingLawyersAssistingDashboardRouteWithChildren
   '/engaging-dashboard': typeof engagingLaywersEngagingDashboardRouteWithChildren
+  '/complaints-policy': typeof landingpageComplaintsPolicyRoute
+  '/privacy-policy': typeof landingpagePrivacyPolicyRoute
+  '/terms-of-use': typeof landingpageTermsOfUseRoute
   '/': typeof landingpageIndexRoute
   '/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
   '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
@@ -332,6 +355,9 @@ export interface FileRoutesByFullPath {
   '/auth/register/': typeof engagingLaywersAuthRegisterIndexRoute
 }
 export interface FileRoutesByTo {
+  '/complaints-policy': typeof landingpageComplaintsPolicyRoute
+  '/privacy-policy': typeof landingpagePrivacyPolicyRoute
+  '/terms-of-use': typeof landingpageTermsOfUseRoute
   '/': typeof landingpageIndexRoute
   '/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
   '/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
@@ -373,6 +399,9 @@ export interface FileRoutesById {
   '/(admin)/admin-dashboard': typeof adminAdminDashboardRouteWithChildren
   '/(assisting-lawyers)/assisting-dashboard': typeof assistingLawyersAssistingDashboardRouteWithChildren
   '/(engaging-laywers)/engaging-dashboard': typeof engagingLaywersEngagingDashboardRouteWithChildren
+  '/(landingpage)/complaints-policy': typeof landingpageComplaintsPolicyRoute
+  '/(landingpage)/privacy-policy': typeof landingpagePrivacyPolicyRoute
+  '/(landingpage)/terms-of-use': typeof landingpageTermsOfUseRoute
   '/(landingpage)/': typeof landingpageIndexRoute
   '/(admin)/admin-dashboard/announcements': typeof adminAdminDashboardAnnouncementsRoute
   '/(admin)/admin-dashboard/finance': typeof adminAdminDashboardFinanceRoute
@@ -417,6 +446,9 @@ export interface FileRouteTypes {
     | '/admin-dashboard'
     | '/assisting-dashboard'
     | '/engaging-dashboard'
+    | '/complaints-policy'
+    | '/privacy-policy'
+    | '/terms-of-use'
     | '/'
     | '/admin-dashboard/announcements'
     | '/admin-dashboard/finance'
@@ -456,6 +488,9 @@ export interface FileRouteTypes {
     | '/auth/register/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/complaints-policy'
+    | '/privacy-policy'
+    | '/terms-of-use'
     | '/'
     | '/admin-dashboard/announcements'
     | '/admin-dashboard/finance'
@@ -496,6 +531,9 @@ export interface FileRouteTypes {
     | '/(admin)/admin-dashboard'
     | '/(assisting-lawyers)/assisting-dashboard'
     | '/(engaging-laywers)/engaging-dashboard'
+    | '/(landingpage)/complaints-policy'
+    | '/(landingpage)/privacy-policy'
+    | '/(landingpage)/terms-of-use'
     | '/(landingpage)/'
     | '/(admin)/admin-dashboard/announcements'
     | '/(admin)/admin-dashboard/finance'
@@ -539,6 +577,9 @@ export interface RootRouteChildren {
   adminAdminDashboardRoute: typeof adminAdminDashboardRouteWithChildren
   assistingLawyersAssistingDashboardRoute: typeof assistingLawyersAssistingDashboardRouteWithChildren
   engagingLaywersEngagingDashboardRoute: typeof engagingLaywersEngagingDashboardRouteWithChildren
+  landingpageComplaintsPolicyRoute: typeof landingpageComplaintsPolicyRoute
+  landingpagePrivacyPolicyRoute: typeof landingpagePrivacyPolicyRoute
+  landingpageTermsOfUseRoute: typeof landingpageTermsOfUseRoute
   landingpageIndexRoute: typeof landingpageIndexRoute
   engagingLaywersAuthLoginIndexRoute: typeof engagingLaywersAuthLoginIndexRoute
   engagingLaywersAuthRegisterIndexRoute: typeof engagingLaywersAuthRegisterIndexRoute
@@ -572,6 +613,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof landingpageIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(landingpage)/complaints-policy': {
+      id: '/(landingpage)/complaints-policy'
+      path: '/complaints-policy'
+      fullPath: '/complaints-policy'
+      preLoaderRoute: typeof landingpageComplaintsPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(landingpage)/privacy-policy': {
+      id: '/(landingpage)/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof landingpagePrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(landingpage)/terms-of-use': {
+      id: '/(landingpage)/terms-of-use'
+      path: '/terms-of-use'
+      fullPath: '/terms-of-use'
+      preLoaderRoute: typeof landingpageTermsOfUseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(admin)/admin-dashboard/': {
@@ -1008,6 +1070,9 @@ const rootRouteChildren: RootRouteChildren = {
     assistingLawyersAssistingDashboardRouteWithChildren,
   engagingLaywersEngagingDashboardRoute:
     engagingLaywersEngagingDashboardRouteWithChildren,
+  landingpageComplaintsPolicyRoute: landingpageComplaintsPolicyRoute,
+  landingpagePrivacyPolicyRoute: landingpagePrivacyPolicyRoute,
+  landingpageTermsOfUseRoute: landingpageTermsOfUseRoute,
   landingpageIndexRoute: landingpageIndexRoute,
   engagingLaywersAuthLoginIndexRoute: engagingLaywersAuthLoginIndexRoute,
   engagingLaywersAuthRegisterIndexRoute: engagingLaywersAuthRegisterIndexRoute,

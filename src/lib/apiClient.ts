@@ -1,8 +1,20 @@
 import axios from 'axios'
 import { getStoredSessionToken } from './authGuard'
 
+function getNormalizedApiUrl(): string {
+  let url = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || 'https://api.counseltask.com/api'
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`
+  }
+  // Ensure the /api suffix is present since all endpoints are mapped under /api
+  if (!url.endsWith('/api') && !url.includes('/api/')) {
+    url = url.replace(/\/+$/, '') + '/api'
+  }
+  return url.replace(/\/+$/, '')
+}
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: getNormalizedApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
