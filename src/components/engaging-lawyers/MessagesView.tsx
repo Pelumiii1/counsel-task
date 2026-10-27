@@ -29,7 +29,7 @@ import {
 } from '#/hooks/useMessages'
 import { useTaskById, useRequestTaskCompletion } from '#/hooks/useTasks'
 import { useWebSocketChat } from '#/hooks/useWebSocketChat'
-import { uploadFile } from '#/lib/fileUpload'
+import { uploadFile, openSecureFile } from '#/lib/fileUpload'
 
 export function MessagesView({
   taskId,
@@ -480,14 +480,13 @@ export function MessagesView({
                           >
                             {msg.content}
                             {msg.fileName && (
-                              <a
-                                href={msg.attachmentUrl || '#'}
-                                target={msg.attachmentUrl ? '_blank' : undefined}
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
                                 onClick={(e) => {
-                                  if (!msg.attachmentUrl) e.preventDefault()
+                                  e.stopPropagation()
+                                  openSecureFile(msg.attachmentUrl)
                                 }}
-                                className={`mt-2 pt-2 border-t flex items-center gap-2 hover:opacity-80 transition cursor-pointer ${isUser
+                                className={`mt-2 pt-2 border-t flex items-center gap-2 hover:opacity-80 transition cursor-pointer text-left w-full ${isUser
                                   ? 'border-white/20'
                                   : role === 'assisting'
                                     ? 'border-gray-300/50'
@@ -495,14 +494,14 @@ export function MessagesView({
                                   }`}
                               >
                                 <FileText className="w-4 h-4 shrink-0" />
-                                <span className="text-[12px] underline">{msg.fileName}</span>
+                                <span className="text-[12px] underline truncate">{msg.fileName}</span>
                                 {msg.fileSize && (
-                                  <span className="text-[10px] opacity-80">({msg.fileSize})</span>
+                                  <span className="text-[10px] opacity-80 shrink-0">({msg.fileSize})</span>
                                 )}
                                 {msg.attachmentUrl && (
                                   <ExternalLink className="w-3 h-3 opacity-70 ml-auto shrink-0" />
                                 )}
-                              </a>
+                              </button>
                             )}
                             <span
                               className={`text-[11px] block font-normal mt-1 select-none font-secondary ${isUser
@@ -613,15 +612,14 @@ export function MessagesView({
                       )
 
                       return file.url ? (
-                        <a
+                        <button
                           key={idx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="py-3.5 px-2 -mx-2 rounded-xl flex items-center gap-3 hover:bg-gray-50 transition group cursor-pointer"
+                          type="button"
+                          onClick={() => openSecureFile(file.url)}
+                          className="w-full py-3.5 px-2 -mx-2 rounded-xl flex items-center gap-3 hover:bg-gray-50 transition group cursor-pointer text-left"
                         >
                           {fileItemContent}
-                        </a>
+                        </button>
                       ) : (
                         <div key={idx} className="py-3.5 flex items-center gap-3">
                           {fileItemContent}

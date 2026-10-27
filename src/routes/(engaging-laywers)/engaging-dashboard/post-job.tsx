@@ -14,6 +14,8 @@ import {
 import { useCreateTask } from '#/hooks/useTasks'
 import { useEngagingProfile } from '#/hooks/useProfile'
 import { DEFAULT_PRACTICE_AREAS } from '#/lib/constants'
+import { uploadFile } from '#/lib/fileUpload'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/(engaging-laywers)/engaging-dashboard/post-job')({
   component: PostJobPage,
@@ -36,6 +38,7 @@ function PostJobPage() {
     'standard' | 'restricted'
   >('standard')
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState('')
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,23 +86,50 @@ function PostJobPage() {
       return
     }
 
-    createTaskMutation.mutate(
-      {
-        title,
-        description,
-        practiceArea: finalPracticeArea,
-        courtLocation,
-        deadline,
-        proposedFee,
-        confidentiality,
-        attachmentUrl: uploadedFile ? uploadedFile.name : undefined,
-      },
-      {
-        onSuccess: () => {
-          navigate({ to: '/engaging-dashboard' })
+    let finalAttachmentUrl: string | undefined = undefined
+
+    const submitTask = (attachmentUrlToUse?: string) => {
+      createTaskMutation.mutate(
+        {
+          title,
+          description,
+          practiceArea: finalPracticeArea,
+          courtLocation,
+          deadline,
+          proposedFee,
+          confidentiality,
+          attachmentUrl: attachmentUrlToUse,
         },
-      },
-    )
+        {
+          onSuccess: () => {
+            setIsUploading(false)
+            navigate({ to: '/engaging-dashboard' })
+          },
+          onError: (err: any) => {
+            setIsUploading(false)
+            setError(err?.message || 'Failed to create task')
+          },
+        },
+      )
+    }
+
+    if (uploadedFile) {
+      setIsUploading(true)
+      const toastId = toast.loading(`Uploading ${uploadedFile.name} to secure storage...`)
+      uploadFile(uploadedFile, 'tasks')
+        .then((res) => {
+          toast.dismiss(toastId)
+          toast.success('Document uploaded successfully')
+          submitTask(res.url)
+        })
+        .catch((err) => {
+          toast.dismiss(toastId)
+          setIsUploading(false)
+          setError(err?.message || 'Failed to upload document. Please try again.')
+        })
+    } else {
+      submitTask()
+    }
   }
 
   return (

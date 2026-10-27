@@ -7,6 +7,7 @@ import { useTaskById, useRequestTaskChanges } from '#/hooks/useTasks'
 import { useTaskProposals } from '#/hooks/useProposals'
 import { useThreadMessages, useSendMessage } from '#/hooks/useMessages'
 import { RichTextContent } from '#/components/ui/RichTextContent'
+import { openSecureFile } from '#/lib/fileUpload'
 
 export const Route = createFileRoute(
   '/(engaging-laywers)/engaging-dashboard/review-work/$taskId',
@@ -273,15 +274,14 @@ function ReviewWorkPage() {
                       </div>
 
                       {file.url && file.url !== '#' && (
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-2 text-gray-400 hover:text-[#00726d] rounded-lg hover:bg-gray-100 transition"
+                        <button
+                          type="button"
+                          onClick={() => openSecureFile(file.url)}
+                          className="p-2 text-gray-400 hover:text-[#00726d] rounded-lg hover:bg-gray-100 transition cursor-pointer"
                           title="Download file"
                         >
                           <Download className="w-4 h-4" />
-                        </a>
+                        </button>
                       )}
                     </div>
                   )
