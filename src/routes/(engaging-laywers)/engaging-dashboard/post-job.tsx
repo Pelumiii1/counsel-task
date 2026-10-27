@@ -13,7 +13,7 @@ import {
 } from '#/components/engaging-lawyers/constants'
 import { useCreateTask } from '#/hooks/useTasks'
 import { useEngagingProfile } from '#/hooks/useProfile'
-import { DEFAULT_PRACTICE_AREAS } from '#/lib/constants'
+import { DEFAULT_PRACTICE_AREAS, COURT_CATEGORIES, DEFAULT_COURTS } from '#/lib/constants'
 import { uploadFile } from '#/lib/fileUpload'
 import { toast } from 'sonner'
 
@@ -32,6 +32,8 @@ function PostJobPage() {
   const [customPracticeArea, setCustomPracticeArea] = useState('')
   const [isCustomArea, setIsCustomArea] = useState(false)
   const [courtLocation, setCourtLocation] = useState('')
+  const [customCourtLocation, setCustomCourtLocation] = useState('')
+  const [isCustomCourt, setIsCustomCourt] = useState(false)
   const [deadline, setDeadline] = useState('')
   const [proposedFee, setProposedFee] = useState('')
   const [confidentiality, setConfidentiality] = useState<
@@ -55,16 +57,22 @@ function PostJobPage() {
       ? customPracticeArea.trim()
       : practiceArea.trim()
 
+    const finalCourtLocation = isCustomCourt
+      ? customCourtLocation.trim()
+      : courtLocation.trim()
+
     if (
       !title ||
       !description ||
       !finalPracticeArea ||
-      !courtLocation ||
+      !finalCourtLocation ||
       !deadline ||
       !proposedFee
     ) {
       if (isCustomArea && !customPracticeArea.trim()) {
         setError('Please specify your custom practice area.')
+      } else if (isCustomCourt && !customCourtLocation.trim()) {
+        setError('Please specify your custom court location.')
       } else {
         setError('Please complete all required fields.')
       }
@@ -94,7 +102,7 @@ function PostJobPage() {
           title,
           description,
           practiceArea: finalPracticeArea,
-          courtLocation,
+          courtLocation: finalCourtLocation,
           deadline,
           proposedFee,
           confidentiality,
@@ -266,16 +274,117 @@ function PostJobPage() {
               )}
             </div>
 
-            <label className={labelClass}>
-              <span>Court Location {requiredMark}</span>
-              <input
-                type="text"
-                value={courtLocation}
-                onChange={(e) => setCourtLocation(e.target.value)}
-                placeholder="e.g ikeja high court"
-                className={inputClass}
-              />
-            </label>
+            {/* Court Location */}
+            <div className="flex flex-col gap-2">
+              <label className={labelClass}>
+                <span>Court Location {requiredMark}</span>
+                <select
+                  value={isCustomCourt ? '__CUSTOM__' : courtLocation}
+                  onChange={(e) => {
+                    if (e.target.value === '__CUSTOM__') {
+                      setIsCustomCourt(true)
+                    } else {
+                      setIsCustomCourt(false)
+                      setCourtLocation(e.target.value)
+                    }
+                  }}
+                  className={inputClass}
+                >
+                  <option value="">-- Select Court Location --</option>
+                  {COURT_CATEGORIES.map((group) => (
+                    <optgroup key={group.category} label={group.category}>
+                      {group.courts.map((court) => (
+                        <option key={court} value={court}>
+                          {court}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                  <option value="__CUSTOM__">Other (Can't find your court? Add custom)...</option>
+                </select>
+              </label>
+
+              {/* Quick Select Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] text-gray-400 mr-0.5">Quick pick:</span>
+                {[
+                  {
+                    name: 'Ikeja High Court',
+                    value: 'High Court of Lagos State, Ikeja Division',
+                  },
+                  {
+                    name: 'FCT Maitama',
+                    value: 'High Court of the FCT, Maitama Judicial Division',
+                  },
+                  {
+                    name: 'FHC Lagos',
+                    value: 'Federal High Court, Lagos Division',
+                  },
+                  {
+                    name: 'NICN Lagos',
+                    value: 'National Industrial Court, Lagos Division',
+                  },
+                  {
+                    name: 'CA Lagos',
+                    value: 'Court of Appeal, Lagos Division',
+                  },
+                ].map((item) => {
+                  const isSelected = !isCustomCourt && courtLocation === item.value
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      title={item.value}
+                      onClick={() => {
+                        setIsCustomCourt(false)
+                        setCourtLocation(item.value)
+                      }}
+                      className={`h-6 px-2 rounded text-[11px] font-medium transition cursor-pointer select-none ${
+                        isSelected
+                          ? 'bg-[#00726D] text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  )
+                })}
+                <button
+                  type="button"
+                  onClick={() => setIsCustomCourt(true)}
+                  className={`h-6 px-2 rounded text-[11px] font-medium transition cursor-pointer select-none flex items-center gap-0.5 ${
+                    isCustomCourt
+                      ? 'bg-[#00726D] text-white'
+                      : 'bg-gray-100 text-[#00726D] hover:bg-gray-200 border border-dashed border-[#00726D]/30'
+                  }`}
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Custom Court</span>
+                </button>
+              </div>
+
+              {isCustomCourt && (
+                <div className="flex flex-col gap-1 mt-1">
+                  <input
+                    type="text"
+                    list="nigerian-courts-datalist"
+                    autoFocus
+                    value={customCourtLocation}
+                    onChange={(e) => setCustomCourtLocation(e.target.value)}
+                    placeholder="Enter custom court (e.g. Magistrate Court 4, Yaba or Customary Court)"
+                    className={inputClass}
+                  />
+                  <datalist id="nigerian-courts-datalist">
+                    {DEFAULT_COURTS.map((court) => (
+                      <option key={court} value={court} />
+                    ))}
+                  </datalist>
+                  <p className="text-[11px] text-gray-500">
+                    Type a custom court name or select from suggestions if not listed.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Row 2: Deadline + Proposed Fee */}
