@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Upload,
@@ -6,6 +6,16 @@ import {
   Plus,
 } from 'lucide-react'
 import { RichTextEditor } from '#/components/ui/RichTextEditor'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select'
 import {
   inputClass,
   labelClass,
@@ -34,6 +44,17 @@ function PostJobPage() {
   const [courtLocation, setCourtLocation] = useState('')
   const [customCourtLocation, setCustomCourtLocation] = useState('')
   const [isCustomCourt, setIsCustomCourt] = useState(false)
+  const [courtSearch, setCourtSearch] = useState('')
+
+  const filteredCourtCategories = useMemo(() => {
+    if (!courtSearch.trim()) return COURT_CATEGORIES
+    const query = courtSearch.toLowerCase()
+    return COURT_CATEGORIES.map((group) => ({
+      category: group.category,
+      courts: group.courts.filter((c) => c.toLowerCase().includes(query)),
+    })).filter((group) => group.courts.length > 0)
+  }, [courtSearch])
+
   const [deadline, setDeadline] = useState('')
   const [proposedFee, setProposedFee] = useState('')
   const [confidentiality, setConfidentiality] = useState<
@@ -197,28 +218,38 @@ function PostJobPage() {
           {/* Row 1: Practice Area + Court Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="flex flex-col gap-2">
-              <label className={labelClass}>
-                <span>Practice Area {requiredMark}</span>
-                <select
-                  value={isCustomArea ? '__CUSTOM__' : practiceArea}
-                  onChange={(e) => {
-                    if (e.target.value === '__CUSTOM__') {
-                      setIsCustomArea(true)
-                    } else {
-                      setIsCustomArea(false)
-                      setPracticeArea(e.target.value)
-                    }
-                  }}
-                  className={inputClass}
-                >
-                  {DEFAULT_PRACTICE_AREAS.map((area) => (
-                    <option key={area} value={area}>
-                      {area}
-                    </option>
-                  ))}
-                  <option value="__CUSTOM__">Other (Custom Practice Area)...</option>
-                </select>
-              </label>
+              <span className="font-secondary text-sm font-semibold text-[#080a0f]">
+                Practice Area {requiredMark}
+              </span>
+              <Select
+                value={isCustomArea ? '__CUSTOM__' : practiceArea}
+                onValueChange={(val) => {
+                  if (val === '__CUSTOM__') {
+                    setIsCustomArea(true)
+                  } else {
+                    setIsCustomArea(false)
+                    setPracticeArea(val)
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Practice Area" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectGroup>
+                    <SelectLabel>Practice Areas</SelectLabel>
+                    {DEFAULT_PRACTICE_AREAS.map((area) => (
+                      <SelectItem key={area} value={area}>
+                        {area}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectItem value="__CUSTOM__" className="text-[#00726D] font-medium">
+                    + Other (Custom Practice Area)...
+                  </SelectItem>
+                </SelectContent>
+              </Select>
 
               {/* Quick Select Pills */}
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -276,33 +307,57 @@ function PostJobPage() {
 
             {/* Court Location */}
             <div className="flex flex-col gap-2">
-              <label className={labelClass}>
-                <span>Court Location {requiredMark}</span>
-                <select
-                  value={isCustomCourt ? '__CUSTOM__' : courtLocation}
-                  onChange={(e) => {
-                    if (e.target.value === '__CUSTOM__') {
-                      setIsCustomCourt(true)
-                    } else {
-                      setIsCustomCourt(false)
-                      setCourtLocation(e.target.value)
-                    }
-                  }}
-                  className={inputClass}
-                >
-                  <option value="">-- Select Court Location --</option>
-                  {COURT_CATEGORIES.map((group) => (
-                    <optgroup key={group.category} label={group.category}>
-                      {group.courts.map((court) => (
-                        <option key={court} value={court}>
-                          {court}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                  <option value="__CUSTOM__">Other (Can't find your court? Add custom)...</option>
-                </select>
-              </label>
+              <span className="font-secondary text-sm font-semibold text-[#080a0f]">
+                Court Location {requiredMark}
+              </span>
+              <Select
+                value={isCustomCourt ? '__CUSTOM__' : courtLocation}
+                onValueChange={(val) => {
+                  if (val === '__CUSTOM__') {
+                    setIsCustomCourt(true)
+                  } else {
+                    setIsCustomCourt(false)
+                    setCourtLocation(val)
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="-- Select Court Location --" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80 w-[var(--radix-select-trigger-width)]">
+                  <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-20">
+                    <input
+                      type="text"
+                      value={courtSearch}
+                      onChange={(e) => setCourtSearch(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Search court or division..."
+                      className="h-8 w-full rounded-md border border-gray-200 px-2.5 text-xs font-secondary text-[#242424] placeholder:text-gray-400 focus:border-[#00726D] focus:ring-1 focus:ring-[#00726D]/20 focus:outline-none"
+                    />
+                  </div>
+                  <SelectItem value="__CUSTOM__" className="text-[#00726D] font-medium my-1">
+                    + Other (Can't find your court? Add custom)...
+                  </SelectItem>
+                  <SelectSeparator />
+                  {filteredCourtCategories.length === 0 ? (
+                    <div className="px-3 py-4 text-center text-xs text-gray-500">
+                      No matching courts found. You can add a custom court below.
+                    </div>
+                  ) : (
+                    filteredCourtCategories.map((group, idx) => (
+                      <SelectGroup key={group.category}>
+                        <SelectLabel>{group.category}</SelectLabel>
+                        {group.courts.map((court) => (
+                          <SelectItem key={court} value={court}>
+                            {court}
+                          </SelectItem>
+                        ))}
+                        {idx < filteredCourtCategories.length - 1 && <SelectSeparator />}
+                      </SelectGroup>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
 
               {/* Quick Select Pills */}
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
