@@ -23,7 +23,7 @@ interface ApiResponse<T = any> {
 }
 
 export const DEFAULT_BANKS: PaystackBank[] = [
-  { name: 'Test Bank', code: '000', slug: 'test-bank' },
+  { name: 'Test Bank', code: '001', slug: 'test-bank' },
   { name: 'Access Bank', code: '044' },
   { name: 'Citibank Nigeria', code: '023' },
   { name: 'Ecobank Nigeria', code: '050' },
@@ -58,8 +58,8 @@ export function useBanks() {
         const response = await apiClient.get<ApiResponse<PaystackBank[]>>('/payments/banks')
         if (response.data?.data && response.data.data.length > 0) {
           const banks = response.data.data
-          if (!banks.some((b) => b.code === '000')) {
-            return [{ name: 'Test Bank', code: '000', slug: 'test-bank' }, ...banks]
+          if (!banks.some((b) => b.code === '001')) {
+            return [{ name: 'Test Bank', code: '001', slug: 'test-bank' }, ...banks]
           }
           return banks
         }
